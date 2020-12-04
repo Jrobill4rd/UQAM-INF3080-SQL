@@ -2,7 +2,8 @@
 CREATE TABLE Usager
 (noUsager		NUMBER(19)		NOT NULL,
  motDePasse		VARCHAR(25)		NOT NULL,
- typeUsager 	typeUsager		NOT NULL,
+ typeUsager 	VARCHAR(15) 
+ CHECK(typeUsager IN('Client', 'Fournisseur', 'Commis')),
  PRIMARY KEY	(noUsager)	
 ) 
 /
@@ -74,7 +75,8 @@ CREATE TABLE Commande
 (noCommande		NUMBER(19)			NOT NULL,
  noClient		NUMBER(19)			NOT NULL,
  dateCommande	DATE	     		NOT NULL,
- status		    typeStatusCommande	NOT NULL,
+ typeStatusCommande VARCHAR(15) 
+ CHECK(typeStatusCommande IN ('Annulee','Livree','Payee','En Attente')),
  PRIMARY KEY (noCommande),
  FOREIGN KEY (noClient) REFERENCES Client
 )
@@ -136,7 +138,8 @@ CREATE TABLE PaiementCheque
 CREATE TABLE PaiementCarteCredit
 (noPaiement 		NUMBER(19)			NOT NULL,
  noCarte			VARCHAR(25)			NOT NULL,
- type 				typeCarteCredit     NOT NULL,
+ typeCarteCredit    VARCHAR(15) 
+ CHECK (typeCarteCredit IN('Visa','MasterCard','AmericanExpress')),
  dateExpiration	    DATE  				NOT NULL,
  PRIMARY KEY (noPaiement),
  FOREIGN KEY (noPaiement) REFERENCES Paiement
