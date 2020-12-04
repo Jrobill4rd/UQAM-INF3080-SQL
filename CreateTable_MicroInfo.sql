@@ -137,7 +137,7 @@ CREATE TABLE PaiementCheque
   noBanque 		    NUMBER(19)			NOT NULL,
   noCompte 		    NUMBER(19)			NOT NULL,
   PRIMARY KEY (noPaiement),
-  FOREIGN KEY (noPaiement) REFERENCES Paiement(noPaiement)
+  FOREIGN KEY (noPaiement) REFERENCES Paiement
 )
 /
 CREATE TABLE PaiementCarteCredit
@@ -147,6 +147,6 @@ CREATE TABLE PaiementCarteCredit
  CHECK (typeCarteCredit IN('Visa','MasterCard','AmericanExpress')),
  dateExpiration	    DATE  				NOT NULL,
  PRIMARY KEY (noPaiement),
- FOREIGN KEY (noPaiement) REFERENCES Paiement(noPaiement)
+ FOREIGN KEY (noPaiement) REFERENCES Paiement
 )
 /
