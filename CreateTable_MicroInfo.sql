@@ -1,4 +1,9 @@
+SET ECHO ON
+-- Script Oracle SQL*plus de creation du schema Micro-Info
+-- Version sans accents
 
+-- Creation des tables
+SET ECHO ON
 CREATE TABLE Usager
 (noUsager		NUMBER(19)		NOT NULL,
  motDePasse		VARCHAR(25)		NOT NULL,
@@ -88,7 +93,7 @@ CREATE TABLE LigneCommande
  CHECK (quantite > 0),
  PRIMARY KEY (noCommande, noProduit),
  FOREIGN KEY (noCommande) REFERENCES Commande,
- FOREIGN KEY (noProduit) REFERENCES Produit
+ FOREIGN KEY (noProduit)  REFERENCES Produit
 )
 /
 CREATE TABLE Livraison
@@ -105,8 +110,8 @@ CREATE TABLE LigneLivraison
  noCommande			NUMBER(19)			NOT NULL,
  PRIMARY KEY (noLivraison),
  FOREIGN KEY (noLivraison) REFERENCES Livraison,
- FOREIGN KEY (produitId) REFERENCES Produit,
- FOREIGN KEY (noCommande) REFERENCES Commande
+ FOREIGN KEY (produitId)   REFERENCES Produit,
+ FOREIGN KEY (noCommande)  REFERENCES Commande
 )
 /
 
@@ -132,7 +137,7 @@ CREATE TABLE PaiementCheque
   noBanque 		    NUMBER(19)			NOT NULL,
   noCompte 		    NUMBER(19)			NOT NULL,
   PRIMARY KEY (noPaiement),
-  FOREIGN KEY (noPaiement) REFERENCES Paiement
+  FOREIGN KEY (noPaiement) REFERENCES Paiement(noPaiement)
 )
 /
 CREATE TABLE PaiementCarteCredit
@@ -142,6 +147,6 @@ CREATE TABLE PaiementCarteCredit
  CHECK (typeCarteCredit IN('Visa','MasterCard','AmericanExpress')),
  dateExpiration	    DATE  				NOT NULL,
  PRIMARY KEY (noPaiement),
- FOREIGN KEY (noPaiement) REFERENCES Paiement
+ FOREIGN KEY (noPaiement) REFERENCES Paiement(noPaiement)
 )
 /
