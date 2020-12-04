@@ -1,4 +1,3 @@
-
 SET ECHO ON
 -- Script Oracle SQL*plus de creation du schema Micro-Info
 -- Version sans accents
