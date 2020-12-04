@@ -1,8 +1,5 @@
-CREATE DOMAIN typeUsager AS VARCHAR(15) CHECK value IN('Client','Fournisseur','Commis');
-CREATE DOMAIN typeStatusCommande AS VARCHAR(15) CHECK value IN('Annulee','Livree','Payee','En Attente');
-CREATE DOMAIN typeCarteCredit AS VARCHAR(15) CHECK value IN('Visa','MasterCard','AmericanExpress');
 
-CREATE TABL Usager
+CREATE TABLE Usager
 (noUsager		NUMBER(19)		NOT NULL,
  motDePasse		VARCHAR(25)		NOT NULL,
  typeUsager 	typeUsager		NOT NULL,

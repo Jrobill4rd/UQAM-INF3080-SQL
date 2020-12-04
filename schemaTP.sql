@@ -1,15 +1,15 @@
 SET ECHO ON
--- Script Oracle SQL*plus de creation du schema VentesPleinDeFoin 
+-- Script Oracle SQL*plus de creation du schema Micro-Info
 -- Version sans accents
 
 -- Creation des tables
 SET ECHO ON
 
-CREATE DOMAIN typeUsager AS VARCHAR(15) CHECK value IN('Client','Fournisseur','Commis');
-CREATE DOMAIN typeStatusCommande AS VARCHAR(15) CHECK value IN('Annulee','Livree','Payee','En Attente');
-CREATE DOMAIN typeCarteCredit AS VARCHAR(15) CHECK value IN('Visa','MasterCard','AmericanExpress');
+CREATE DOMAIN typeUsager VARCHAR(15) CHECK value IN('Client','Fournisseur','Commis');
+CREATE DOMAIN typeStatusCommande VARCHAR(15) CHECK value IN('Annulee','Livree','Payee','En Attente');
+CREATE DOMAIN typeCarteCredit VARCHAR(15) CHECK value IN('Visa','MasterCard','AmericanExpress');
 
-CREATE TABL Usager
+CREATE TABLE Usager
 (noUsager		NUMBER(19)		NOT NULL,
  motDePasse		VARCHAR(25)		NOT NULL,
  typeUsager 	typeUsager		NOT NULL,
@@ -71,7 +71,7 @@ CREATE TABLE TypeProduit
  FOREIGN KEY (noProduit) REFERENCES Produit 
 ) 
 /
-
+ 
 CREATE TABLE ProduitPrix
 (noProduit			NUMBER(19)		NOT NULL,
  dateEnVigueur		DATE 			NOT NULL,
@@ -105,7 +105,7 @@ CREATE TABLE Livraison
  dateLivraison		DATE 				NOT NULL,
  PRIMARY KEY (noLivraison),
  FOREIGN KEY (noClient) REFERENCES Client
-)
+)micrSch
 /
 CREATE TABLE LigneLivraison
 (noLivraison 		NUMBER(19)			NOT NULL,
