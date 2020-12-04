@@ -97,7 +97,7 @@ CREATE TABLE Livraison
  dateLivraison		DATE 				NOT NULL,
  PRIMARY KEY (noLivraison),
  FOREIGN KEY (noClient) REFERENCES Client
-)micrSch
+)
 /
 CREATE TABLE LigneLivraison
 (noLivraison 		NUMBER(19)			NOT NULL,
