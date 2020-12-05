@@ -1,5 +1,5 @@
 SET ECHO ON
-SPOOL ./Schema_Output.txt
+SPOOL "Schema_Output.txt"
 -- Script Oracle SQL*plus de creation du schema Micro-Info
 -- Version sans accents
 
@@ -149,69 +149,3 @@ CREATE TABLE PaiementCarteCredit
  FOREIGN KEY (noPaiement) REFERENCES Paiement(noPaiement)
  )
  /
- -- Triggers
-
--- Réduire la quantité en stock d'un article en fonction de la quantité LIVRÉE
-CREATE OR REPLACE TRIGGER reduireQteEnStock
-(
-AFTER INSERT
-    ON LigneCommande FOR EACH ROW
-
-BEGIN
-
-UPDATE TypeProduit
-SET TypeProduit.quantiteEnStock = TypeProduit.quantiteEnStock - LigneCommande.quantite
-WHERE TypeProduit.noProduit = LigneCommande.noProduit
-
-END
-)
-/
--- Bloquer l'insertion d'une livraison d'un article lorsque la quantité livrée dépasse la quantité en stock
-CREATE OR REPLACE bloquerInsertionStock
-(
-BEFORE INSERT
-        ON LigneLivraison FOR EACH ROW
-
-BEGIN
-WHERE (LigneLivraison.noProduit = TypeProduit.noProduit)
-IF (LigneLivraison.quantiteLivre > TypeProduit.quantiteEnStock)
-        BEGIN
-                ROLLBACK TRANSACTION
-                RAISE_ERROR ("La quantite livree ne peut depasser la quantite en stock", 16, 1)
-        END
-END
-)
-/
--- Bloquer l'insertion d'un article lorsque la quantité totale livrée dépasse la quantité commandée de la commande
-CREATE OR REPLACE bloquerInsertionCommande
-(
-BEFORE INSERT
-        ON LigneLivraison FOR EACH ROW
-
-BEGIN
-SELECT SUM(quantiteLivree) AS livraison
-FROM LigneLivraison
-GROUP BY GROUPING SETS (
-        (produitId),
-        (noLivraison)
-)
-WHERE (LigneLivraison.noProduit = TypeProduit.noProduit)
-IF (livraison > LigneCommande.quantite)
-        BEGIN
-                ROLLBACK TRANSACTION
-                RAISE_ERROR ("La quantite livree ne peut pas depasser la quantite commandee", 16, 1)
-        END
-END
-)
-/
---Bloquer l'insertion d'un paiement qui dépasse le montant qui reste à payer
-CREATE OR REPLACE bloquerPaiementDepassantMontant
-(
-BEFORE INSERT
-        ON Paiement FOR EACH ROW
-BEGIN
-SELECT SUM(Paiement.montant) as MontantPaye AND SUM(Facture.montantSousTotal + Facture.montantTaxes) as MontantTotal
-GROUP BY noLivraison
-WHERE Paiement.noLivraison = Facture.noLivraison
-)
-/
