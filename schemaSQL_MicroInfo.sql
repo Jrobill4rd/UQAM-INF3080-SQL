@@ -3,7 +3,6 @@ SET ECHO ON
 -- Version sans accents
 
 -- Creation des tables
-SET ECHO ON
 CREATE TABLE Usager
 (noUsager		NUMBER(19)		NOT NULL,
  motDePasse		VARCHAR(25)		NOT NULL,
@@ -14,7 +13,7 @@ CREATE TABLE Usager
 /
 CREATE TABLE Fournisseur
 (noUsager		NUMBER(19)		NOT NULL,
- noFournisseur	NUMBER(19)		NOT NULL,
+ noFournisseur	NUMBER(19)		NOT NULL	UNIQUE,
  telephone		CHAR(10)		NOT NULL,
  raisonSociale	VARCHAR(50)		NOT NULL,
  noCivique		NUMBER(19)		NOT NULL,
@@ -22,7 +21,6 @@ CREATE TABLE Fournisseur
  ville			VARCHAR(50)		NOT NULL,
  pays			VARCHAR(50)		NOT NULL,
  codePostal		VARCHAR(6)		NOT NULL,
- PRIMARY KEY	(noFournisseur),
  FOREIGN KEY	(noUsager) REFERENCES Usager
 )
 /
@@ -59,11 +57,10 @@ CREATE TABLE Client
 )
 / 
 CREATE TABLE TypeProduit
-(noProduit			NUMBER(19)		NOT NULL,
+(noProduit			NUMBER(19)		NOT NULL	UNIQUE,
  description		VARCHAR(250)	NOT NULL,
  minimumEnStock		NUMBER(19)      NOT NULL,
  quantiteEnStock	NUMBER(19)      NOT NULL,
- PRIMARY KEY (noProduit),
  FOREIGN KEY (noProduit) REFERENCES Produit 
 ) 
 /
@@ -106,12 +103,12 @@ CREATE TABLE Livraison
 /
 CREATE TABLE LigneLivraison
 (noLivraison 		NUMBER(19)		NOT NULL,
- produitId			NUMBER(19)		NOT NULL,
+ noProduit			NUMBER(19)		NOT NULL,
  noCommande			NUMBER(19)		NOT NULL,
  quantiteLivree     NUMBER(19)      NOT NULL,
  PRIMARY KEY (noLivraison),
  FOREIGN KEY (noLivraison) REFERENCES Livraison,
- FOREIGN KEY (produitId)   REFERENCES Produit,
+ FOREIGN KEY (noProduit)   REFERENCES Produit,
  FOREIGN KEY (noCommande)  REFERENCES Commande
 )
 /
@@ -129,7 +126,7 @@ CREATE TABLE Paiement
  noPaiement 		NUMBER(19)		NOT NULL,
  datePaiement		DATE 			NOT NULL,
  montant 			FLOAT(4)        NOT NULL,
- PRIMARY KEY (noLivraison, noPaiement),
+ PRIMARY KEY (noPaiement),
  FOREIGN KEY (noLivraison) REFERENCES Livraison
 )
 /
@@ -138,7 +135,7 @@ CREATE TABLE PaiementCheque
   noBanque 		    NUMBER(19)		NOT NULL,
   noCompte 		    NUMBER(19)		NOT NULL,
   PRIMARY KEY (noPaiement),
-  FOREIGN KEY (noPaiement) REFERENCES Paiement
+  FOREIGN KEY (noPaiement) REFERENCES Paiement(noPaiement)
 )
 /
 CREATE TABLE PaiementCarteCredit
@@ -148,6 +145,7 @@ CREATE TABLE PaiementCarteCredit
  CHECK (typeCarteCredit IN('Visa','MasterCard','AmericanExpress')),
  dateExpiration	    DATE  			NOT NULL,
  PRIMARY KEY (noPaiement),
- FOREIGN KEY (noPaiement) REFERENCES Paiement
-)
-/
+ FOREIGN KEY (noPaiement) REFERENCES Paiement(noPaiement)
+ )
+ 
+ -- Triggers
