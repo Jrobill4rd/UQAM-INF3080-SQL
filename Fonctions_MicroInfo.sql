@@ -9,14 +9,14 @@ CREATE OR REPLACE FUNCTION fQteDejaLivree
 (unNoProduit LigneLivraison.noProduit%TYPE, unNoCommande LigneLivraison.noCommande%TYPE)
 RETURN  LigneLivraison.quantiteLivree%TYPE IS 
 
-    uneQuantiteDejalivree LigneLivraison.quantiteLivree%TYPE;
+    quantiteDejalivree LigneLivraison.quantiteLivree%TYPE;
 BEGIN 
    SELECT   SUM(quantiteLivre)
-   INTO     uneQuantitelivree
+   INTO     quantiteDejalivree
    FROM     LigneLivraison
-   WHERE    (LigneLivraison.noProduit = unNoProduit) AND (LigneLivraison.noCommande = unNoCommande);
-   RETURN   uneQuantiteDejaLivree;
-END fQuantiteDejaLivree;
+   WHERE    (noProduit = unNoProduit) AND (noCommande = unNoCommande);
+   RETURN   quantiteDejalivree;
+END fQteDejaLivree;
 /
 
 CREATE OR REPLACE FUNCTION fTotalFacture
