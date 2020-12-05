@@ -11,7 +11,7 @@ RETURN  Commande.quantiteDejaLivree%TYPE IS
 
     uneQuantiteDejalivree LigneLivraison.quantiteDejaLivree%TYPE;
 BEGIN 
-   SELECT   SUM(quantiteLivre)
+   SELECT   quantiteLivre
    INTO     uneQuantitelivree
    FROM     LigneLivraison
    WHERE    (noProduit = unNoProduit) AND (noCommande = unNoCommande);
@@ -25,7 +25,7 @@ RETURN Facture.montantTotalFacture%TYPE IS
 
     unMontantTotalFacture Facture.montantTotalFacture%TYPE;
 BEGIN
-    SELECT  SUM(montantSousTotal + montantTaxes)
+    SELECT  montantSousTotal + montantTaxes
     INTO    unMontantTotalFacture
     FROM    Facture
     WHERE   noLivraison = unNoLivraison;
