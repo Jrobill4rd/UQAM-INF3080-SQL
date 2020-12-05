@@ -151,19 +151,3 @@ CREATE TABLE PaiementCarteCredit
  FOREIGN KEY (noPaiement) REFERENCES Paiement
 )
 /
-#INCOMPLETE
-CREATE TRIGGER reduireQteEnStock
-AFTER UPDATE ON LigneCommande
-FOR EACH ROW
-
-CREATE TRIGGER bloquerInsertionStock
-BEFORE INSERT
-FOR EACH ROW
-
-CREATE TRIGGER bloquerInsertionCommande
-BEFORE INSERT 
-FOR EACH ROW
-
-CREATE TRIGGER bloquerPaiementDepassantMontant
-BEFORE INSERT 
-FOR EACH ROW
