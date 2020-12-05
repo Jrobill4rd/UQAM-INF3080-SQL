@@ -5,30 +5,30 @@ SET ECHO ON
 -- Creation des fonctions
 SET ECHO ON
 
-CREATE OR REPLACE FUNCTION fQuantiteDejaLivree
+CREATE OR REPLACE FUNCTION fQteDejaLivree
 (unNoProduit LigneLivraison.noProduit%TYPE, unNoCommande LigneLivraison.noCommande%TYPE)
-RETURN  Commande.quantiteDejaLivree%TYPE IS 
+RETURN  LigneLivraison.quantiteLivree%TYPE IS 
 
-    uneQuantiteDejalivree LigneLivraison.quantiteDejaLivree%TYPE;
+    uneQuantiteDejalivree LigneLivraison.quantiteLivree%TYPE;
 BEGIN 
-   SELECT   quantiteLivre
+   SELECT   SUM(quantiteLivre)
    INTO     uneQuantitelivree
    FROM     LigneLivraison
    WHERE    (noProduit = unNoProduit) AND (noCommande = unNoCommande);
    RETURN   uneQuantiteDejaLivree;
 END fQuantiteDejaLivree;
-
 /
+
 CREATE OR REPLACE FUNCTION fTotalFacture
 (unNoLivraison Facture.noLivraison%TYPE)
-RETURN Facture.montantTotalFacture%TYPE IS
+RETURN Facture.montantSousTotal%TYPE IS
 
-    unMontantTotalFacture Facture.montantTotalFacture%TYPE;
+    unMontTotalFacture Facture.montantSousTotal%TYPE;
 BEGIN
-    SELECT  montantSousTotal + montantTaxes
+    SELECT  SUM(montantSousTotal + montantTaxes)
     INTO    unMontantTotalFacture
     FROM    Facture
     WHERE   noLivraison = unNoLivraison;
-    RETURN  unMontantTotalFacture;
+    RETURN  unMontTotalFacture;
 END fTotalFacture;
 /
