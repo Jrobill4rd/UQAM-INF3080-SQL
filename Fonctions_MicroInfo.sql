@@ -11,10 +11,10 @@ RETURN  LigneLivraison.quantiteLivree%TYPE IS
 
     quantiteDejalivree LigneLivraison.quantiteLivree%TYPE;
 BEGIN 
-   SELECT   SUM(quantiteLivre)
+   SELECT   SUM(quantiteLivree)
    INTO     quantiteDejalivree
    FROM     LigneLivraison
-   WHERE    (noProduit = unNoProduit) AND (noCommande = unNoCommande);
+   WHERE    noProduit = unNoProduit AND noCommande = unNoCommande;
    RETURN   quantiteDejalivree;
 END fQteDejaLivree;
 /
@@ -23,12 +23,12 @@ CREATE OR REPLACE FUNCTION fTotalFacture
 (unNoLivraison Facture.noLivraison%TYPE)
 RETURN Facture.montantSousTotal%TYPE IS
 
-    unMontTotalFacture Facture.montantSousTotal%TYPE;
+    MontTotalFacture Facture.montantSousTotal%TYPE;
 BEGIN
     SELECT  SUM(montantSousTotal + montantTaxes)
-    INTO    unMontTotalFacture
+    INTO    MontTotalFacture
     FROM    Facture
     WHERE   noLivraison = unNoLivraison;
-    RETURN  unMontTotalFacture;
+    RETURN  MontTotalFacture;
 END fTotalFacture;
 /
