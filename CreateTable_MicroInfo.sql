@@ -14,7 +14,7 @@ CREATE TABLE Usager
 /
 CREATE TABLE Fournisseur
 (noUsager		NUMBER(19)		NOT NULL,
- noFournisseur	NUMBER(19)		NOT NULL,
+ noFournisseur	NUMBER(19)		NOT NULL	UNIQUE,
  telephone		CHAR(10)		NOT NULL,
  raisonSociale	VARCHAR(50)		NOT NULL,
  noCivique		NUMBER(19)		NOT NULL,
@@ -22,7 +22,7 @@ CREATE TABLE Fournisseur
  ville			VARCHAR(50)		NOT NULL,
  pays			VARCHAR(50)		NOT NULL,
  codePostal		VARCHAR(6)		NOT NULL,
- PRIMARY KEY	(noFournisseur),
+ /* PRIMARY KEY	(noFournisseur), */
  FOREIGN KEY	(noUsager) REFERENCES Usager
 )
 /
@@ -59,11 +59,11 @@ CREATE TABLE Client
 )
 / 
 CREATE TABLE TypeProduit
-(noProduit			NUMBER(19)		NOT NULL,
+(noProduit			NUMBER(19)		NOT NULL	UNIQUE,
  description		VARCHAR(250)	NOT NULL,
  minimumEnStock		NUMBER(19)      NOT NULL,
  quantiteEnStock	NUMBER(19)      NOT NULL,
- PRIMARY KEY (noProduit),
+ /*PRIMARY KEY (noProduit),*/
  FOREIGN KEY (noProduit) REFERENCES Produit 
 ) 
 /
@@ -90,6 +90,7 @@ CREATE TABLE LigneCommande
 (noCommande		NUMBER(19)		NOT NULL,
  noProduit		NUMBER(19)		NOT NULL,
  quantite 		NUMBER(19)		NOT NULL,
+ -- La quantité commandé doit être supérieure à ZÉRO
  CHECK (quantite > 0),
  PRIMARY KEY (noCommande, noProduit),
  FOREIGN KEY (noCommande) REFERENCES Commande,
@@ -128,7 +129,7 @@ CREATE TABLE Paiement
  noPaiement 		NUMBER(19)		NOT NULL,
  datePaiement		DATE 			NOT NULL,
  montant 			FLOAT(4)        NOT NULL,
- PRIMARY KEY (noLivraison, noPaiement),
+ PRIMARY KEY (noPaiement),
  FOREIGN KEY (noLivraison) REFERENCES Livraison
 )
 /
@@ -137,16 +138,18 @@ CREATE TABLE PaiementCheque
   noBanque 		    NUMBER(19)		NOT NULL,
   noCompte 		    NUMBER(19)		NOT NULL,
   PRIMARY KEY (noPaiement),
-  FOREIGN KEY (noPaiement) REFERENCES Paiement
+  FOREIGN KEY (noPaiement) REFERENCES Paiement(noPaiement)
 )
 /
 CREATE TABLE PaiementCarteCredit
 (noPaiement 		NUMBER(19)      NOT NULL,
  noCarte			VARCHAR(25)     NOT NULL,
  typeCarteCredit    VARCHAR(15) 
+ -- Le type de carte de crédit doit absolument être un de ces choix
  CHECK (typeCarteCredit IN('Visa','MasterCard','AmericanExpress')),
  dateExpiration	    DATE  			NOT NULL,
  PRIMARY KEY (noPaiement),
- FOREIGN KEY (noPaiement) REFERENCES Paiement
+ FOREIGN KEY (noPaiement) REFERENCES Paiement(noPaiement)
 )
 /
+
