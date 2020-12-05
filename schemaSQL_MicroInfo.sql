@@ -1,4 +1,3 @@
-<<<<<<< HEAD:schemaSQL_MicroInfo.sql
 SET ECHO ON
 -- Script Oracle SQL*plus de creation du schema Micro-Info
 -- Version sans accents
@@ -109,6 +108,7 @@ CREATE TABLE LigneLivraison
 (noLivraison 		NUMBER(19)		NOT NULL,
  produitId			NUMBER(19)		NOT NULL,
  noCommande			NUMBER(19)		NOT NULL,
+ quantiteLivree     NUMBER(19)      NOT NULL,
  PRIMARY KEY (noLivraison),
  FOREIGN KEY (noLivraison) REFERENCES Livraison,
  FOREIGN KEY (produitId)   REFERENCES Produit,

@@ -22,7 +22,6 @@ CREATE TABLE Fournisseur
  ville			VARCHAR(50)		NOT NULL,
  pays			VARCHAR(50)		NOT NULL,
  codePostal		VARCHAR(6)		NOT NULL,
- /* PRIMARY KEY	(noFournisseur), */
  FOREIGN KEY	(noUsager) REFERENCES Usager
 )
 /
@@ -63,7 +62,6 @@ CREATE TABLE TypeProduit
  description		VARCHAR(250)	NOT NULL,
  minimumEnStock		NUMBER(19)      NOT NULL,
  quantiteEnStock	NUMBER(19)      NOT NULL,
- /*PRIMARY KEY (noProduit),*/
  FOREIGN KEY (noProduit) REFERENCES Produit 
 ) 
 /
@@ -90,7 +88,6 @@ CREATE TABLE LigneCommande
 (noCommande		NUMBER(19)		NOT NULL,
  noProduit		NUMBER(19)		NOT NULL,
  quantite 		NUMBER(19)		NOT NULL,
- -- La quantité commandé doit être supérieure à ZÉRO
  CHECK (quantite > 0),
  PRIMARY KEY (noCommande, noProduit),
  FOREIGN KEY (noCommande) REFERENCES Commande,
@@ -107,11 +104,12 @@ CREATE TABLE Livraison
 /
 CREATE TABLE LigneLivraison
 (noLivraison 		NUMBER(19)		NOT NULL,
- produitId			NUMBER(19)		NOT NULL,
+ noProduit			NUMBER(19)		NOT NULL,
  noCommande			NUMBER(19)		NOT NULL,
+ quantiteLivree     NUMBER(19)      NOT NULL,
  PRIMARY KEY (noLivraison),
  FOREIGN KEY (noLivraison) REFERENCES Livraison,
- FOREIGN KEY (produitId)   REFERENCES Produit,
+ FOREIGN KEY (noProduit)   REFERENCES Produit,
  FOREIGN KEY (noCommande)  REFERENCES Commande
 )
 /
@@ -145,7 +143,6 @@ CREATE TABLE PaiementCarteCredit
 (noPaiement 		NUMBER(19)      NOT NULL,
  noCarte			VARCHAR(25)     NOT NULL,
  typeCarteCredit    VARCHAR(15) 
- -- Le type de carte de crédit doit absolument être un de ces choix
  CHECK (typeCarteCredit IN('Visa','MasterCard','AmericanExpress')),
  dateExpiration	    DATE  			NOT NULL,
  PRIMARY KEY (noPaiement),
