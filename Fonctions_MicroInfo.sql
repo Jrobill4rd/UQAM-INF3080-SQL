@@ -25,7 +25,7 @@ RETURN Facture.montantTotalFacture%TYPE
 
     unMontantTotalFacture Facture.montantTotalFacture%TYPE
 BEGIN
-    SELECT  SUM(montantSousTotal, montantTaxes)
+    SELECT  SUM(montantSousTotal + montantTaxes)
     INTO    unMontantTotalFacture
     FROM    Facture
     WHERE   noLivraison = unNoLivraison;
