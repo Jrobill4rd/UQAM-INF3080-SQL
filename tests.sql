@@ -177,7 +177,7 @@ FOR EACH ROW
 BEGIN
         UPDATE TypeProduit
         SET quantiteEnStock = quantiteEnStock - Commande.quantiteLivree
-        WHERE noProduit = Commande.noProduit;
+        WHERE noProduit = :Commande.noProduit;
 END;
 /
 -- Bloquer l'insertion d'une livraison d'un article lorsque la quantité livrée dépasse la quantité en stock
@@ -216,7 +216,7 @@ BEGIN
         SELECT SUM(quantiteLivree) AS livraison
         FROM LigneLivraison
         INTO quantiteTotal
-        WHERE noProduit = TypeProduit.noProduit)
+        WHERE noProduit = TypeProduit.noProduit;
 
         IF :quantiteLivree.livraison > quantiteTotal THEN raise_application_error(-20200, "La quantite livree ne doit pas depasser la quantite en stock")
         END IF;
@@ -236,7 +236,7 @@ BEGIN
         SELECT SUM(montantSousTotal + montantTaxes) as MontantTotal
         FROM Facture
         INTO TotalPaiement
-        WHERE noLivraison = Paiement.noLivraison
+        WHERE noLivraison = Paiement.noLivraison;
 
         IF :NouveauPaiement.montant > TotalPaiement THEN raise_application_error(-20300, "Le montant a payer ne doit pas depasser le montant du")
         END IF;
