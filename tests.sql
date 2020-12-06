@@ -172,14 +172,15 @@ CREATE TABLE PaiementCarteCredit
 CREATE TRIGGER AjusterQteEnStock
 AFTER INSERT ON LigneLivraison
 REFERENCING
-        NEW AS Commande
+        NEW AS Achat
 FOR EACH ROW
 BEGIN
-        UPDATE TypeProduit
-        SET quantiteEnStock = quantiteEnStock - Commande.quantiteLivree
-        WHERE noProduit = :Commande.noProduit;
+    UPDATE TypeProduit
+    SET quantiteEnStock = quantiteEnStock - Achat.quantiteLivree
+    WHERE noProduit = :Achat.noProduit;
 END;
 /
+
 -- Bloquer l'insertion d'une livraison d'un article lorsque la quantité livrée dépasse la quantité en stock
 CREATE OR REPLACE TRIGGER bloquerInsertionStock
 BEFORE INSERT
@@ -188,16 +189,18 @@ REFERENCING
         NEW AS LivraisonStock
 FOR EACH ROW
 
-DECLARE quantiteStock INTEGER;
+DECLARE 
+        quantiteStock INTEGER;
 
 BEGIN
-        SELECT quantiteEnStock
-        INTO quantiteStock
-        FROM TypeProduit
-        WHERE noProduit = :LivraisonStock.noProduit;
+    SELECT quantiteEnStock
+    INTO quantiteStock
+     FROM TypeProduit
+    WHERE noProduit = :LivraisonStock.noProduit;
 
-        IF :LivraisonStock.quantiteLivre > quantiteStock THEN raise_application_error(-20100, 'La quantite livree ne peut depasser la quantite en stock');
-        END IF;
+    IF: LivraisonStock.quantiteLivre > quantiteStock THEN 
+    raise_application_error(-20100, 'La quantite livree ne peut depasser la quantite en stock');
+    END IF;
 END;
 /
 
@@ -218,7 +221,8 @@ BEGIN
         INTO quantiteTotal
         WHERE noProduit = TypeProduit.noProduit;
 
-        IF :quantiteLivree.livraison > quantiteTotal THEN raise_application_error(-20200, "La quantite livree ne doit pas depasser la quantite en stock")
+        IF: quantiteLivree.livraison > quantiteTotal THEN 
+        raise_application_error(-20200, "La quantite livree ne doit pas depasser la quantite en stock")
         END IF;
 END;
 /
@@ -233,7 +237,7 @@ FOR EACH ROW
 DECLARE TotalPaiement INTEGER;
 
 BEGIN
-        SELECT SUM(montantSousTotal + montantTaxes) as MontantTotal
+        SELECT SUM(montantSousTotal + montantTaxes)
         FROM Facture
         INTO TotalPaiement
         WHERE noLivraison = Paiement.noLivraison;
