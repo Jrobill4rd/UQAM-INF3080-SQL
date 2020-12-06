@@ -1,0 +1,298 @@
+SQL> -- Script Oracle SQL*plus de creation du schema Micro-Info
+SQL> -- Version sans accents
+SQL> 
+SQL> -- Creation des tables
+SQL> CREATE TABLE Usager
+  2  (noUsager		     NUMBER(19) 	     NOT NULL,
+  3   motDePasse	     VARCHAR(25)	     NOT NULL,
+  4   typeUsager     VARCHAR(15)
+  5   CHECK(typeUsager IN('Client', 'Fournisseur', 'Commis')),
+  6   PRIMARY KEY    (noUsager)
+  7  )
+  8  /
+
+Table created.
+
+SQL> CREATE TABLE Fournisseur
+  2  (noUsager		     NUMBER(19) 	     NOT NULL,
+  3   noFournisseur  NUMBER(19) 	     NOT NULL	     UNIQUE,
+  4   telephone 	     CHAR(10)		     NOT NULL,
+  5   raisonSociale  VARCHAR(50)	     NOT NULL,
+  6   noCivique 	     NUMBER(19) 	     NOT NULL,
+  7   rue		     VARCHAR(50)	     NOT NULL,
+  8   ville		     VARCHAR(50)	     NOT NULL,
+  9   pays		     VARCHAR(50)	     NOT NULL,
+ 10   codePostal	     VARCHAR(6) 	     NOT NULL,
+ 11   FOREIGN KEY    (noUsager) REFERENCES Usager
+ 12  )
+ 13  /
+
+Table created.
+
+SQL> CREATE TABLE Produit
+  2  (produitId 	     NUMBER(19) 	     NOT NULL,
+  3   noProduit 	     NUMBER(19) 	     NOT NULL,
+  4   codeZebre 	     CHAR(12)		     NOT NULL,
+  5   PRIMARY KEY    (produitId)
+  6  )
+  7  /
+
+Table created.
+
+SQL> CREATE TABLE PrioriteFournisseur
+  2  (noFournisseur  NUMBER(19) 	     NOT NULL,
+  3   noProduit 	     NUMBER(19) 	     NOT NULL,
+  4   priorite		     NUMBER(19) 	     NOT NULL,
+  5   PRIMARY KEY    (noFournisseur),
+  6   FOREIGN KEY    (noFournisseur) REFERENCES Fournisseur,
+  7   FOREIGN KEY    (noProduit)	     REFERENCES Produit
+  8  )
+  9  /
+ FOREIGN KEY	(noFournisseur) REFERENCES Fournisseur,
+            	                           *
+ERROR at line 6:
+ORA-02268: table referencee ne contient pas de cle primaire 
+
+
+SQL> CREATE TABLE Client
+  2  (noClient		     NUMBER(19) 	     NOT NULL,
+  3   noUsager		     NUMBER(19) 	     NOT NULL,
+  4   prenom		 VARCHAR(50)	     NOT NULL,
+  5   nom		 VARCHAR(50)	     NOT NULL,
+  6   telephone 	     CHAR(10)		     NOT NULL,
+  7   qualite		 VARCHAR(25)	     NOT NULL,
+  8   noCivique 	     NUMBER(19) 	     NOT NULL,
+  9   rue		 VARCHAR(50)	     NOT NULL,
+ 10   ville		 VARCHAR(50)	     NOT NULL,
+ 11   pays		 VARCHAR(50)	     NOT NULL,
+ 12   codePostal	     CHAR(6)		     NOT NULL,
+ 13   PRIMARY KEY (noClient),
+ 14   FOREIGN KEY (noUsager) REFERENCES Usager
+ 15  )
+ 16  /
+
+Table created.
+
+SQL> CREATE TABLE TypeProduit
+  2  (noProduit 		     NUMBER(19) 	     NOT NULL	     UNIQUE,
+  3   description	     VARCHAR(250)    NOT NULL,
+  4   minimumEnStock	     NUMBER(19)      NOT NULL,
+  5   quantiteEnStock	     NUMBER(19)      NOT NULL,
+  6   FOREIGN KEY (noProduit) REFERENCES Produit
+  7  )
+  8  /
+
+Table created.
+
+SQL> 
+SQL> CREATE TABLE ProduitPrix
+  2  (noProduit 		     NUMBER(19) 	     NOT NULL,
+  3   dateEnVigueur	     DATE		 NOT NULL,
+  4   prix			     NUMBER(19,4)    NOT NULL,
+  5   PRIMARY KEY (noProduit),
+  6   FOREIGN KEY (noProduit) REFERENCES Produit
+  7  )
+  8  /
+
+Table created.
+
+SQL> CREATE TABLE Commande
+  2  (noCommande	     NUMBER(19) 	     NOT NULL,
+  3   noClient		     NUMBER(19) 	     NOT NULL,
+  4   dateCommande   DATE	     NOT NULL,
+  5   typeStatusCommande VARCHAR(15)
+  6   CHECK(typeStatusCommande IN ('Annulee','Livree','Payee','En Attente')),
+  7   PRIMARY KEY (noCommande),
+  8   FOREIGN KEY (noClient) REFERENCES Client
+  9  )
+ 10  /
+
+Table created.
+
+SQL> CREATE TABLE LigneCommande
+  2  (noCommande	     NUMBER(19) 	     NOT NULL,
+  3   noProduit 	     NUMBER(19) 	     NOT NULL,
+  4   quantite		     NUMBER(19) 	     NOT NULL,
+  5   CHECK (quantite > 0),
+  6   PRIMARY KEY (noCommande, noProduit),
+  7   FOREIGN KEY (noCommande) REFERENCES Commande,
+  8   FOREIGN KEY (noProduit)  REFERENCES Produit
+  9  )
+ 10  /
+
+Table created.
+
+SQL> CREATE TABLE Livraison
+  2  (noLivraison	     NUMBER(19) 	     NOT NULL,
+  3   noClient			     NUMBER(19) 	     NOT NULL,
+  4   dateLivraison	     DATE		     NOT NULL,
+  5   PRIMARY KEY (noLivraison),
+  6   FOREIGN KEY (noClient) REFERENCES Client
+  7  )
+  8  /
+
+Table created.
+
+SQL> CREATE TABLE LigneLivraison
+  2  (noLivraison	     NUMBER(19) 	     NOT NULL,
+  3   noProduit 		     NUMBER(19) 	     NOT NULL,
+  4   noCommande		     NUMBER(19) 	     NOT NULL,
+  5   quantiteLivree	 NUMBER(19)	 NOT NULL,
+  6   PRIMARY KEY (noLivraison),
+  7   FOREIGN KEY (noLivraison) REFERENCES Livraison,
+  8   FOREIGN KEY (noProduit)	REFERENCES Produit,
+  9   FOREIGN KEY (noCommande)	REFERENCES Commande
+ 10  )
+ 11  /
+
+Table created.
+
+SQL> 
+SQL> CREATE TABLE Facture
+  2  (noLivraison	     NUMBER(19) 	     NOT NULL,
+  3   montantSousTotal	     NUMBER(19,4)    NOT NULL,
+  4   montantTaxes	     NUMBER(19,4)    NOT NULL,
+  5   dateLimitePaiment  DATE		 NOT NULL,
+  6   PRIMARY KEY (noLivraison),
+  7   FOREIGN KEY (noLivraison) REFERENCES Livraison
+  8   )
+  9  /
+
+Table created.
+
+SQL> CREATE TABLE Paiement
+  2  (noLivraison	     NUMBER(19) 	     NOT NULL,
+  3   noPaiement	     NUMBER(19) 	     NOT NULL,
+  4   datePaiement	     DATE		     NOT NULL,
+  5   montant			     FLOAT(4)	     NOT NULL,
+  6   PRIMARY KEY (noPaiement),
+  7   FOREIGN KEY (noLivraison) REFERENCES Livraison
+  8  )
+  9  /
+
+Table created.
+
+SQL> CREATE TABLE PaiementCheque
+  2  ( noPaiement	     NUMBER(19) 	     NOT NULL,
+  3    noBanque 		 NUMBER(19)	     NOT NULL,
+  4    noCompte 		 NUMBER(19)	     NOT NULL,
+  5    PRIMARY KEY (noPaiement),
+  6    FOREIGN KEY (noPaiement) REFERENCES Paiement(noPaiement)
+  7  )
+  8  /
+
+Table created.
+
+SQL> CREATE TABLE PaiementCarteCredit
+  2  (noPaiement	     NUMBER(19)      NOT NULL,
+  3   noCarte			     VARCHAR(25)     NOT NULL,
+  4   typeCarteCredit	 VARCHAR(15)
+  5   CHECK (typeCarteCredit IN('Visa','MasterCard','AmericanExpress')),
+  6   dateExpiration	 DATE			     NOT NULL,
+  7   PRIMARY KEY (noPaiement),
+  8   FOREIGN KEY (noPaiement) REFERENCES Paiement(noPaiement)
+  9   )
+ 10   /
+
+Table created.
+
+SQL>  -- Triggers
+SQL> 
+SQL> -- Réduire la quantité en stock d'un article en fonction de la quantité LIVRÉE
+SQL> CREATE TRIGGER AjusterQteEnStock
+  2  AFTER INSERT ON LigneLivraison
+  3  REFERENCING
+  4  	     NEW AS Achat
+  5  FOR EACH ROW
+  6  BEGIN
+  7  	     UPDATE TypeProduit
+  8  	     SET TypeProduit.quantiteEnStock = TypeProduit.quantiteEnStock - :Achat.quantiteLivree
+  9  	     WHERE TypeProduit.noProduit = :Achat.noProduit;
+ 10  END;
+ 11  /
+
+Trigger created.
+
+SQL> -- Bloquer l'insertion d'une livraison d'un article lorsque la quantité livrée dépasse la quantité en stock
+SQL> CREATE OR REPLACE TRIGGER bloquerInsertionStock
+  2  BEFORE INSERT
+  3  	     ON LigneLivraison
+  4  REFERENCING
+  5  	     NEW AS LivraisonStock
+  6  FOR EACH ROW
+  7  
+  8  DECLARE quantiteStock INTEGER;
+  9  
+ 10  BEGIN
+ 11  	     SELECT quantiteEnStock
+ 12  	     INTO quantiteStock
+ 13  	     FROM TypeProduit
+ 14  	     WHERE TypeProduit.noProduit = :LivraisonStock.noProduit;
+ 15  
+ 16  	     IF :LivraisonStock.quantiteLivree > quantiteStock THEN
+ 17  		     raise_application_error(-20100, 'La quantite livree ne peut depasser la quantite en stock');
+ 18  	     END IF;
+ 19  END;
+ 20  /
+
+Trigger created.
+
+SQL> -- Bloquer l'insertion d'une livraison d'un article  lorsque la quantité totale livrée dépasse la quantité commandée de la commande
+SQL> CREATE OR REPLACE TRIGGER bloquerInsertionCommande
+  2  BEFORE INSERT
+  3  	     ON LigneLivraison
+  4  REFERENCING
+  5  	     NEW AS NouvelleLivraison
+  6  FOR EACH ROW
+  7  	     DECLARE
+  8  		     qteLivree	     NUMBER(19);
+  9  		     qteCommandee    NUMBER(19);
+ 10  BEGIN
+ 11  	     SELECT  SUM(quantiteLivree)
+ 12  	     INTO    qteLivree
+ 13  	     FROM    LigneLivraison
+ 14  	     WHERE   LigneLivraison.noProduit = :NouvelleLivraison.noProduit;
+ 15  
+ 16  	     SELECT  quantite
+ 17  	     INTO    qteCommandee
+ 18  	     FROM    LigneCommande
+ 19  	     WHERE   LigneCommande.noProduit = :NouvelleLivraison.noProduit;
+ 20  
+ 21  	     IF :NouvelleLivraison.quantiteLivree + qteLivree > qteCommandee THEN
+ 22  		     raise_application_error(-20100, 'La quantite a livrer est trop elevee');
+ 23  	     END IF;
+ 24  END;
+ 25  /
+
+Trigger created.
+
+SQL> --Bloquer l'insertion d'un paiement qui dépasse le montant qui reste à payer
+SQL> CREATE OR REPLACE TRIGGER bloquerPaiement
+  2  BEFORE INSERT
+  3  	     ON Paiement
+  4  REFERENCING
+  5  	     NEW AS NouveauPaiement
+  6  FOR EACH ROW
+  7  	     DECLARE
+  8  		     totalPaiement NUMBER(19,4);
+  9  		     totalFacture  NUMBER(19,4);
+ 10  BEGIN
+ 11  	     SELECT  SUM(Facture.montantSousTotal + Facture.montantTaxes)
+ 12  	     INTO    totalFacture
+ 13  	     FROM    Facture
+ 14  	     WHERE   Facture.noLivraison = :NouveauPaiement.noLivraison;
+ 15  
+ 16  	     SELECT  SUM(montant)
+ 17  	     INTO    totalPaiement
+ 18  	     FROM    Paiement
+ 19  	     WHERE   Paiement.noLivraison = :NouveauPaiement.noLivraison;
+ 20  
+ 21  	     IF :NouveauPaiement.montant > (totalFacture - totalPaiement) THEN
+ 22  		     raise_application_error(-20300, 'Le montant a payer ne doit pas depasser le montant du');
+ 23  	     END IF;
+ 24  END;
+ 25  /
+
+Trigger created.
+
+SQL> exit
