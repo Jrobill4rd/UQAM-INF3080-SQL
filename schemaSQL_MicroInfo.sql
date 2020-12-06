@@ -150,3 +150,90 @@ CREATE TABLE PaiementCarteCredit
  FOREIGN KEY (noPaiement) REFERENCES Paiement(noPaiement)
  )
  /
+ -- Triggers
+
+-- Réduire la quantité en stock d'un article en fonction de la quantité LIVRÉE
+CREATE TRIGGER AjusterQteEnStock
+AFTER INSERT ON LigneLivraison
+REFERENCING
+        NEW AS Achat
+FOR EACH ROW
+BEGIN
+        UPDATE TypeProduit
+        SET TypeProduit.quantiteEnStock = TypeProduit.quantiteEnStock - :Achat.quantiteLivree
+        WHERE TypeProduit.noProduit = :Achat.noProduit;
+END;
+/
+-- Bloquer l'insertion d'une livraison d'un article lorsque la quantité livrée dépasse la quantité en stock
+CREATE OR REPLACE TRIGGER bloquerInsertionStock
+BEFORE INSERT
+        ON LigneLivraison
+REFERENCING
+        NEW AS LivraisonStock
+FOR EACH ROW
+
+DECLARE quantiteStock INTEGER;
+
+BEGIN
+        SELECT quantiteEnStock
+        INTO quantiteStock
+        FROM TypeProduit
+        WHERE TypeProduit.noProduit = :LivraisonStock.noProduit;
+
+        IF :LivraisonStock.quantiteLivree > quantiteStock THEN 
+		raise_application_error(-20100, 'La quantite livree ne peut depasser la quantite en stock');
+        END IF;
+END;
+/
+-- Bloquer l'insertion d'une livraison d'un article  lorsque la quantité totale livrée dépasse la quantité commandée de la commande
+CREATE OR REPLACE TRIGGER bloquerInsertionCommande
+BEFORE INSERT
+        ON LigneLivraison
+REFERENCING
+	NEW AS NouvelleLivraison
+FOR EACH ROW
+	DECLARE
+		qteLivree	NUMBER(19);
+		qteCommandee	NUMBER(19);
+BEGIN	
+	SELECT	SUM(quantiteLivree)
+	INTO	qteLivree
+	FROM	LigneLivraison
+	WHERE	LigneLivraison.noProduit = :NouvelleLivraison.noProduit;
+
+	SELECT	quantite
+	INTO	qteCommandee
+	FROM	LigneCommande
+	WHERE	LigneCommande.noProduit = :NouvelleLivraison.noProduit;
+
+        IF :NouvelleLivraison.quantiteLivree + qteLivree > qteCommandee THEN 
+		raise_application_error(-20100, 'La quantite a livrer est trop elevee');
+        END IF;
+END;
+/
+--Bloquer l'insertion d'un paiement qui dépasse le montant qui reste à payer
+CREATE OR REPLACE TRIGGER bloquerPaiement
+BEFORE INSERT
+        ON Paiement
+REFERENCING
+        NEW AS NouveauPaiement
+FOR EACH ROW
+	DECLARE
+		totalPaiement NUMBER(19,4);
+		totalFacture  NUMBER(19,4); 
+BEGIN
+	SELECT  SUM(Facture.montantSousTotal + Facture.montantTaxes)
+	INTO 	totalFacture
+	FROM	Facture
+	WHERE	Facture.noLivraison = :NouveauPaiement.noLivraison;
+	
+	SELECT	SUM(montant)
+	INTO	totalPaiement
+	FROM	Paiement
+	WHERE	Paiement.noLivraison = :NouveauPaiement.noLivraison;
+	        
+        IF :NouveauPaiement.montant > (totalFacture - totalPaiement) THEN 
+        	raise_application_error(-20300, 'Le montant a payer ne doit pas depasser le montant du');
+        END IF;
+END;
+/
