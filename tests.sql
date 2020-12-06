@@ -1,5 +1,3 @@
-BSBaSGpb
-
 SET ECHO ON
 SPOOL ./Schema_Output.txt
 -- Script Oracle SQL*plus de creation du schema Micro-Info
@@ -180,7 +178,7 @@ BEGIN
         UPDATE TypeProduit
         SET quantiteEnStock = quantiteEnStock - Commande.quantiteLivree
         WHERE noProduit = Commande.noProduit;
-END
+END;
 /
 -- Bloquer l'insertion d'une livraison d'un article lorsque la quantité livrée dépasse la quantité en stock
 CREATE OR REPLACE TRIGGER bloquerInsertionStock
@@ -207,42 +205,42 @@ END;
 -- Bloquer l'insertion d'un article lorsque la quantité totale livrée dépasse la quantité commandée de la commande
 CREATE OR REPLACE TRIGGER bloquerInsertionCommande
 BEFORE INSERT
-        ON LigneLivraison FOR EACH ROW
+        ON LigneLivraison
+REFERENCING
+        NEW AS quantiteLivree
+FOR EACH ROW
+
+DECLARE quantiteTotal INTEGER;
 
 BEGIN
-SELECT SUM(quantiteLivree) AS livraison
-FROM LigneLivraison
-GROUP BY GROUPING SETS (
-        (produitId),
-        (noLivraison)
-)
-WHERE (LigneLivraison.noProduit = TypeProduit.noProduit)
-        IF (livraison > LigneCommande.quantite)
-                BEGIN
-                        ROLLBACK TRANSACTION
-                        RAISEERROR ("La quantite livree ne peut pas depasser la quantite commandee", 16, 1)
-                END;
-        END IF;
-END;
-TION
-                        RAISEERROR ("La quantite livree ne peut depasser la quantite en stock", 16, 1)
-                END;
+        SELECT SUM(quantiteLivree) AS livraison
+        FROM LigneLivraison
+        INTO quantiteTotal
+        WHERE noProduit = TypeProduit.noProduit)
+
+        IF :quantiteLivree.livraison > quantiteTotal THEN raise_application_error(-20200, "La quantite livree ne doit pas depasser la quantite en stock")
         END IF;
 END;
 /
 --Bloquer l'insertion d'un paiement qui dépasse le montant qui reste à payer
 CREATE OR REPLACE TRIGGER bloquerPaiement
 BEFORE INSERT
-        ON Paiement FOR EACH ROW
+        ON Paiement
+REFERENCING
+        NEW AS NouveauPaiement
+FOR EACH ROW
+
+DECLARE TotalPaiement INTEGER;
+
 BEGIN
-SELECT SUM(Paiement.montant) as MontantPaye AND SUM(Facture.montantSousTotal + Facture.montantTaxes) as MontantTotal
-GROUP BY noLivraison
-WHERE Paiement.noLivraison = Facture.noLivraison
-        IF Paiement.MontantPaye > Facture.MontantTotal
-                BEGIN
-                        ROLLBACK TRANSACTION
-                        RAISEERROR ("La quantite paye ne doit pas depasser le montant total du", 16, 1)
-                END;
+        SELECT SUM(montantSousTotal + montantTaxes) as MontantTotal
+        FROM Facture
+        INTO TotalPaiement
+        WHERE noLivraison = Paiement.noLivraison
+
+        IF :NouveauPaiement.montant > TotalPaiement THEN raise_application_error(-20300, "Le montant a payer ne doit pas depasser le montant du")
         END IF;
 END;
 /
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         246,1         All
