@@ -1,6 +1,71 @@
 SQL> -- Script Oracle SQL*plus de creation du schema Micro-Info
 SQL> -- Version sans accents
 SQL> 
+SQL> -- drop table
+SQL> DROP TABLE usager CASCADE CONSTRAINTS;
+
+Table dropped.
+
+SQL> DROP TABLE Fournisseur CASCADE CONSTRAINTS;
+
+Table dropped.
+
+SQL> DROP TABLE Produit CASCADE CONSTRAINTS;
+
+Table dropped.
+
+SQL> DROP TABLE PrioriteFournisseur CASCADE CONSTRAINTS;
+DROP TABLE PrioriteFournisseur CASCADE CONSTRAINTS
+           *
+ERROR at line 1:
+ORA-00942: Table ou vue inexistante 
+
+
+SQL> DROP TABLE Client CASCADE CONSTRAINTS;
+
+Table dropped.
+
+SQL> DROP TABLE TypeProduit CASCADE CONSTRAINTS;
+
+Table dropped.
+
+SQL> DROP TABLE ProduitPrix CASCADE CONSTRAINTS;
+
+Table dropped.
+
+SQL> DROP TABLE Commande CASCADE CONSTRAINTS;
+
+Table dropped.
+
+SQL> DROP TABLE LigneCommande CASCADE CONSTRAINTS;
+
+Table dropped.
+
+SQL> DROP TABLE Livraison CASCADE CONSTRAINTS;
+
+Table dropped.
+
+SQL> DROP TABLE LigneLivraison CASCADE CONSTRAINTS;
+
+Table dropped.
+
+SQL> DROP TABLE Facture CASCADE CONSTRAINTS;
+
+Table dropped.
+
+SQL> DROP TABLE Paiement CASCADE CONSTRAINTS;
+
+Table dropped.
+
+SQL> DROP TABLE PaiementCheque CASCADE CONSTRAINTS;
+
+Table dropped.
+
+SQL> DROP TABLE PaiementCarteCredit CASCADE CONSTRAINTS;
+
+Table dropped.
+
+SQL> 
 SQL> -- Creation des tables
 SQL> CREATE TABLE Usager
   2  (noUsager		     NUMBER(19) 	     NOT NULL,
@@ -30,9 +95,9 @@ SQL> CREATE TABLE Fournisseur
 Table created.
 
 SQL> CREATE TABLE Produit
-  2  (produitId 	     NUMBER(19) 	     NOT NULL,
-  3   noProduit 	     NUMBER(19) 	     NOT NULL,
-  4   codeZebre 	     CHAR(12)		     NOT NULL,
+  2  (produitId 	     NUMBER(19)      NOT NULL,
+  3   noProduit 	     NUMBER(19)      NOT NULL,
+  4   codeZebre 	     CHAR(12)	     NOT NULL,
   5   PRIMARY KEY    (produitId)
   6  )
   7  /
@@ -41,31 +106,31 @@ Table created.
 
 SQL> CREATE TABLE PrioriteFournisseur
   2  (noFournisseur  NUMBER(19) 	     NOT NULL,
-  3   noProduit 	     NUMBER(19) 	     NOT NULL,
-  4   priorite		     NUMBER(19) 	     NOT NULL,
+  3   noProduit 	     NUMBER(19)      NOT NULL,
+  4   priorite		     NUMBER(19)      NOT NULL,
   5   PRIMARY KEY    (noFournisseur),
-  6   FOREIGN KEY    (noFournisseur) REFERENCES Fournisseur,
+  6   FOREIGN KEY    (noFournisseur)	     REFERENCES Fournisseur,
   7   FOREIGN KEY    (noProduit)	     REFERENCES Produit
   8  )
   9  /
- FOREIGN KEY	(noFournisseur) REFERENCES Fournisseur,
-            	                           *
+ FOREIGN KEY    (noFournisseur)         REFERENCES Fournisseur,
+                                                   *
 ERROR at line 6:
 ORA-02268: table referencee ne contient pas de cle primaire 
 
 
 SQL> CREATE TABLE Client
-  2  (noClient		     NUMBER(19) 	     NOT NULL,
-  3   noUsager		     NUMBER(19) 	     NOT NULL,
+  2  (noClient		 NUMBER(19)	     NOT NULL,
+  3   noUsager		 NUMBER(19)	     NOT NULL,
   4   prenom		 VARCHAR(50)	     NOT NULL,
   5   nom		 VARCHAR(50)	     NOT NULL,
-  6   telephone 	     CHAR(10)		     NOT NULL,
+  6   telephone 	 CHAR(10)	     NOT NULL,
   7   qualite		 VARCHAR(25)	     NOT NULL,
-  8   noCivique 	     NUMBER(19) 	     NOT NULL,
+  8   noCivique 	 NUMBER(19)	     NOT NULL,
   9   rue		 VARCHAR(50)	     NOT NULL,
  10   ville		 VARCHAR(50)	     NOT NULL,
  11   pays		 VARCHAR(50)	     NOT NULL,
- 12   codePostal	     CHAR(6)		     NOT NULL,
+ 12   codePostal	 CHAR(6)	     NOT NULL,
  13   PRIMARY KEY (noClient),
  14   FOREIGN KEY (noUsager) REFERENCES Usager
  15  )
@@ -190,9 +255,160 @@ SQL> CREATE TABLE PaiementCarteCredit
   6   dateExpiration	 DATE			     NOT NULL,
   7   PRIMARY KEY (noPaiement),
   8   FOREIGN KEY (noPaiement) REFERENCES Paiement(noPaiement)
-  9   )
- 10   /
+  9  )
+ 10  /
 
 Table created.
 
+SQL> -- Triggers
+SQL> 
+SQL> -- Réduire la quantité en stock d'un article en fonction de la quantité LIVRÉE
+SQL> CREATE OR REPLACE TRIGGER AjusterQteEnStock
+  2  AFTER INSERT ON LigneLivraison
+  3  REFERENCING
+  4  	     NEW AS Achat
+  5  FOR EACH ROW
+  6  BEGIN
+  7  	 UPDATE TypeProduit
+  8  	 SET quantiteEnStock = quantiteEnStock - Achat.quantiteLivree
+  9  	 WHERE noProduit = :Achat.noProduit;
+ 10  END;
+ 11  /
+
+Warning: Trigger created with compilation errors.
+
+SQL> SHOW ERRORS
+Errors for TRIGGER AJUSTERQTEENSTOCK:
+
+LINE/COL ERROR                                                                  
+-------- -----------------------------------------------------------------      
+2/5      PL/SQL: SQL Statement ignored                                          
+3/45     PL/SQL: ORA-00904: "ACHAT"."QUANTITELIVREE" : identificateur non       
+         valide                                                                 
+                                                                                
+SQL> -- Bloquer l'insertion d'une livraison d'un article lorsque la quantité livrée dépasse la quantité en stock
+SQL> CREATE OR REPLACE TRIGGER bloquerInsertionStock
+  2  BEFORE INSERT
+  3  	     ON LigneLivraison
+  4  REFERENCING
+  5  	     NEW AS LivraisonStock
+  6  FOR EACH ROW
+  7  
+  8  DECLARE
+  9  	     quantiteStock TypeProduit.quantiteEnStock%TYPE;
+ 10  
+ 11  BEGIN
+ 12  	 SELECT quantiteEnStock
+ 13  	 INTO quantiteStock
+ 14  	 FROM TypeProduit
+ 15  	 WHERE noProduit = LivraisonStock.noProduit;
+ 16  
+ 17  	 IF: LivraisonStock.quantiteLivre > quantiteStock THEN
+ 18  	 raise_application_error(-20100, 'La quantite livree ne peut depasser la quantite en stock');
+ 19  	 END IF;
+ 20  END;
+ 21  /
+
+Warning: Trigger created with compilation errors.
+
+SQL> 
+SQL> SHOW ERRORS
+Errors for TRIGGER BLOQUERINSERTIONSTOCK:
+
+LINE/COL ERROR                                                                  
+-------- -----------------------------------------------------------------      
+10/7     PLS-00103: Encountered the symbol ":" when expecting one of the        
+         following:                                                             
+         ( - + case mod new not null <identificateur>                           
+         <identificateur entre guillemets>                                      
+         <variable attachee (bind variable)> continue avg count                 
+         current exists max min prior sql stddev sum variance execute           
+         forall merge time timestamp interval date                              
+         <un litteral de chaine avec specification de jeu de caracteres>        
+         <un nombre> <une chaine SQL entre apostrophes> pipe                    
+         <constante de chaine eventuellement entre guilleme                     
+                                                                                
+SQL> -- Bloquer l'insertion d'un article lorsque la quantité totale livrée dépasse la quantité commandée de la commande
+SQL> CREATE OR REPLACE TRIGGER bloquerInsertionCommande
+  2  BEFORE INSERT
+  3  	     ON LigneLivraison
+  4  REFERENCING
+  5  	     NEW AS qteEnLivraison
+  6  FOR EACH ROW
+  7  
+  8  DECLARE
+  9  	     quantiteTotal LigneLivraison.quantiteLivree%TYPE;
+ 10  
+ 11  BEGIN
+ 12  	     SELECT SUM(quantiteLivree)
+ 13  	     FROM LigneLivraison
+ 14  	     INTO quantiteTotal
+ 15  	     WHERE noProduit = TypeProduit.noProduit;
+ 16  
+ 17  	     IF: qteEnLivraison.livraison > quantiteTotal THEN
+ 18  	     raise_application_error(-20200, "La quantite livree ne doit pas depasser la quantite en stock");
+ 19  	     END IF;
+ 20  END;
+ 21  /
+
+Warning: Trigger created with compilation errors.
+
+SQL> SHOW ERRORS
+Errors for TRIGGER BLOQUERINSERTIONCOMMANDE:
+
+LINE/COL ERROR                                                                  
+-------- -----------------------------------------------------------------      
+5/9      PL/SQL: SQL Statement ignored                                          
+7/9      PL/SQL: ORA-00933: la commande SQL ne se termine pas correctement      
+10/11    PLS-00103: Encountered the symbol ":" when expecting one of the        
+         following:                                                             
+         ( - + case mod new not null <identificateur>                           
+         <identificateur entre guillemets>                                      
+         <variable attachee (bind variable)> continue avg count                 
+         current exists max min prior sql stddev sum variance execute           
+         forall merge time timestamp interval date                              
+         <un litteral de chaine avec specification de jeu de caracteres>        
+         <un nombre> <une chaine SQL entre apostrophes> pipe                    
+
+LINE/COL ERROR                                                                  
+-------- -----------------------------------------------------------------      
+         <constante de chaine eventuellement entre guilleme                     
+                                                                                
+11/41    PLS-00114: identifier 'La quantite livree ne doit pas' too long        
+SQL> --Bloquer l'insertion d'un paiement qui dépasse le montant qui reste à payer
+SQL> CREATE OR REPLACE TRIGGER bloquerPaiement
+  2  BEFORE INSERT
+  3  	     ON Paiement
+  4  REFERENCING
+  5  	     NEW AS NouveauPaiement
+  6  FOR EACH ROW
+  7  
+  8  DECLARE TotalPaiement INTEGER;
+  9  
+ 10  BEGIN
+ 11  	     SELECT SUM(montantSousTotal + montantTaxes)
+ 12  	     FROM Facture
+ 13  	     INTO TotalPaiement
+ 14  	     WHERE noLivraison = Paiement.noLivraison;
+ 15  
+ 16  	     IF :NouveauPaiement.montant > TotalPaiement THEN
+ 17  	     raise_application_error(-20300, "Le montant a payer ne doit pas depasser le montant du");
+ 18  	     END IF;
+ 19  END;
+ 20  /
+
+Warning: Trigger created with compilation errors.
+
+SQL> 
+SQL> SHOW ERRORS
+Errors for TRIGGER BLOQUERPAIEMENT:
+
+LINE/COL ERROR                                                                  
+-------- -----------------------------------------------------------------      
+4/9      PL/SQL: SQL Statement ignored                                          
+6/9      PL/SQL: ORA-00933: la commande SQL ne se termine pas correctement      
+10/41    PLS-00114: identifier 'Le montant a payer ne doit pas' too long        
+SQL> 
+SQL> 
+SQL> 
 SQL> exit

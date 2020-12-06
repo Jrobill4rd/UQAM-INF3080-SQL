@@ -164,7 +164,7 @@ CREATE TABLE PaiementCarteCredit
  dateExpiration     DATE                        NOT NULL,
  PRIMARY KEY (noPaiement),
  FOREIGN KEY (noPaiement) REFERENCES Paiement(noPaiement)
- )
+)
 /
 -- Triggers
 
@@ -180,6 +180,10 @@ BEGIN
     WHERE noProduit = :Achat.noProduit;
 END;
 /
+SHOW ERRORS
+
+
+
 
 -- Bloquer l'insertion d'une livraison d'un article lorsque la quantité livrée dépasse la quantité en stock
 CREATE OR REPLACE TRIGGER bloquerInsertionStock
@@ -196,7 +200,7 @@ BEGIN
     SELECT quantiteEnStock
     INTO quantiteStock
     FROM TypeProduit
-    WHERE noProduit = :LivraisonStock.noProduit;
+    WHERE noProduit = LivraisonStock.noProduit;
 
     IF: LivraisonStock.quantiteLivre > quantiteStock THEN 
     raise_application_error(-20100, 'La quantite livree ne peut depasser la quantite en stock');
@@ -204,7 +208,7 @@ BEGIN
 END;
 /
 
-
+SHOW ERRORS
 -- Bloquer l'insertion d'un article lorsque la quantité totale livrée dépasse la quantité commandée de la commande
 CREATE OR REPLACE TRIGGER bloquerInsertionCommande
 BEFORE INSERT
@@ -227,6 +231,7 @@ BEGIN
         END IF;
 END;
 /
+SHOW ERRORS
 --Bloquer l'insertion d'un paiement qui dépasse le montant qui reste à payer
 CREATE OR REPLACE TRIGGER bloquerPaiement
 BEFORE INSERT
@@ -249,4 +254,4 @@ BEGIN
 END;
 /
 
-show errors                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         246,1         All
+SHOW ERRORS
