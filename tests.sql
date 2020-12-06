@@ -169,18 +169,17 @@ CREATE TABLE PaiementCarteCredit
 -- Triggers
 
 -- Réduire la quantité en stock d'un article en fonction de la quantité LIVRÉE
-CREATE OR REPLACE TRIGGER AjusterQteEnStock
+CREATE TRIGGER AjusterQteEnStock
 AFTER INSERT ON LigneLivraison
 REFERENCING
         NEW AS Achat
 FOR EACH ROW
 BEGIN
-    UPDATE TypeProduit
-    SET quantiteEnStock = quantiteEnStock - Achat.quantiteLivree
-    WHERE noProduit = :Achat.noProduit;
+        UPDATE TypeProduit
+        SET TypeProduit.quantiteEnStock = TypeProduit.quantiteEnStock - :Achat.quantiteLivree
+        WHERE TypeProduit.noProduit = :Achat.noProduit;
 END;
 /
-
 -- Bloquer l'insertion d'une livraison d'un article lorsque la quantité livrée dépasse la quantité en stock
 CREATE OR REPLACE TRIGGER bloquerInsertionStock
 BEFORE INSERT
@@ -189,20 +188,37 @@ REFERENCING
         NEW AS LivraisonStock
 FOR EACH ROW
 
-DECLARE 
-        quantiteStock TypeProduit.quantiteEnStock%TYPE;
+DECLARE quantiteStock INTEGER;
 
 BEGIN
-    SELECT quantiteEnStock
-    INTO quantiteStock
-    FROM TypeProduit
-    WHERE noProduit = :LivraisonStock.noProduit;
+        SELECT quantiteEnStock
+        INTO quantiteStock
+        FROM TypeProduit
+        WHERE TypeProduit.noProduit = :LivraisonStock.noProduit;
 
-    IF: LivraisonStock.quantiteLivre > quantiteStock THEN 
-    raise_application_error(-20100, 'La quantite livree ne peut depasser la quantite en stock');
-    END IF;
+        IF :LivraisonStock.quantiteLivree > quantiteStock THEN raise_application_error(-20100, 'La quantite livree ne peut depasser la quantite en stock');
+        END IF;
 END;
 /
+
+-- Bloquer l'insertion d'un article lorsque la quantité totale livrée dépasse la quantité commandée de la commande
+CREATE OR REPLACE TRIGGER bloquerInsertionCommande
+BEFORE INSERT
+        ON LigneLivraison
+REFERENCING
+        NEW AS NouvelleLivraison
+FOR EACH ROW
+
+BEGIN
+        SELECT noProduit, noLivraison, SUM(quantiteLivree) AS LivraisonEffectuee
+        FROM LigneLivraison
+        GROUP BY noLivraison, noProduit;
+
+        IF :NouvelleLivraison.LivraisonEffectuee > LigneCommande.quantite THEN raise_application_error(-20100, 'La quantite a livrer est trop elevee');
+        END IF;
+END;
+/
+
 
 
 -- Bloquer l'insertion d'un article lorsque la quantité totale livrée dépasse la quantité commandée de la commande
