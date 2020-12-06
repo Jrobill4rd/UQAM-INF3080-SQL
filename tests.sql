@@ -201,25 +201,6 @@ BEGIN
 END;
 /
 
--- Bloquer l'insertion d'un article lorsque la quantité totale livrée dépasse la quantité commandée de la commande
-CREATE OR REPLACE TRIGGER bloquerInsertionCommande
-BEFORE INSERT
-        ON LigneLivraison
-REFERENCING
-        NEW AS NouvelleLivraison
-FOR EACH ROW
-
-BEGIN
-        SELECT noProduit, noLivraison, SUM(quantiteLivree) AS LivraisonEffectuee
-        FROM LigneLivraison
-        GROUP BY noLivraison, noProduit;
-
-        IF :NouvelleLivraison.LivraisonEffectuee > LigneCommande.quantite THEN raise_application_error(-20100, 'La quantite a livrer est trop elevee');
-        END IF;
-END;
-/
-
-
 
 -- Bloquer l'insertion d'un article lorsque la quantité totale livrée dépasse la quantité commandée de la commande
 CREATE OR REPLACE TRIGGER bloquerInsertionCommande
