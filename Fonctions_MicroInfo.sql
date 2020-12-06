@@ -1,10 +1,14 @@
 SET ECHO ON
 -- Script Oracle SQL*plus de creation du schema Micro-Info
 -- Version sans accents
-
+----------------------------------------------------------
 -- Creation des fonctions
+----------------------------------------------------------
 SET ECHO ON
-
+-- * Cette fonction fait la somme des quantite livre pour les 
+-- *
+-- *
+-- *
 CREATE OR REPLACE FUNCTION fQteDejaLivree
 (unNoProduit LigneLivraison.noProduit%TYPE, unNoCommande LigneLivraison.noCommande%TYPE)
 RETURN  LigneLivraison.quantiteLivree%TYPE IS 
