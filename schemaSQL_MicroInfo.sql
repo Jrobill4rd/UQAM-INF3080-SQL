@@ -26,10 +26,10 @@ CREATE TABLE Fournisseur
 )
 /
 CREATE TABLE Produit
-(produitId		NUMBER(19)		NOT NULL,
- noProduit		NUMBER(19)		NOT NULL,
+(noProduit		NUMBER(19)		NOT NULL,
  codeZebre		CHAR(12)		NOT NULL,
- PRIMARY KEY	(produitId)
+ PRIMARY KEY (noProduit),
+ FOREIGN KEY (noProduit) REFERENCES TypeProduit
 )
 / 
 CREATE TABLE PrioriteFournisseur
