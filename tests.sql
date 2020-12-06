@@ -43,33 +43,33 @@ CREATE TABLE Fournisseur
 )
 /
 CREATE TABLE Produit
-(produitId              NUMBER(19)              NOT NULL,
- noProduit              NUMBER(19)              NOT NULL,
- codeZebre              CHAR(12)                NOT NULL,
+(produitId              NUMBER(19)      NOT NULL,
+ noProduit              NUMBER(19)      NOT NULL,
+ codeZebre              CHAR(12)        NOT NULL,
  PRIMARY KEY    (produitId)
 )
 /
 CREATE TABLE PrioriteFournisseur
 (noFournisseur  NUMBER(19)              NOT NULL,
- noProduit              NUMBER(19)              NOT NULL,
- priorite               NUMBER(19)              NOT NULL,
+ noProduit              NUMBER(19)      NOT NULL,
+ priorite               NUMBER(19)      NOT NULL,
  PRIMARY KEY    (noFournisseur),
- FOREIGN KEY    (noFournisseur) REFERENCES Fournisseur,
+ FOREIGN KEY    (noFournisseur)         REFERENCES Fournisseur,
  FOREIGN KEY    (noProduit)             REFERENCES Produit
 )
 /
 CREATE TABLE Client
-(noClient               NUMBER(19)              NOT NULL,
- noUsager               NUMBER(19)              NOT NULL,
+(noClient           NUMBER(19)          NOT NULL,
+ noUsager           NUMBER(19)          NOT NULL,
  prenom             VARCHAR(50)         NOT NULL,
  nom                VARCHAR(50)         NOT NULL,
- telephone              CHAR(10)                NOT NULL,
+ telephone          CHAR(10)            NOT NULL,
  qualite            VARCHAR(25)         NOT NULL,
- noCivique              NUMBER(19)              NOT NULL,
+ noCivique          NUMBER(19)          NOT NULL,
  rue                VARCHAR(50)         NOT NULL,
  ville              VARCHAR(50)         NOT NULL,
  pays               VARCHAR(50)         NOT NULL,
- codePostal             CHAR(6)                 NOT NULL,
+ codePostal         CHAR(6)             NOT NULL,
  PRIMARY KEY (noClient),
  FOREIGN KEY (noUsager) REFERENCES Usager
 )
@@ -169,7 +169,7 @@ CREATE TABLE PaiementCarteCredit
 -- Triggers
 
 -- Réduire la quantité en stock d'un article en fonction de la quantité LIVRÉE
-CREATE TRIGGER AjusterQteEnStock
+CREATE OR REPLACE TRIGGER AjusterQteEnStock
 AFTER INSERT ON LigneLivraison
 REFERENCING
         NEW AS Achat
@@ -190,12 +190,12 @@ REFERENCING
 FOR EACH ROW
 
 DECLARE 
-        quantiteStock INTEGER;
+        quantiteStock TypeProduit.quantiteEnStock%TYPE;
 
 BEGIN
     SELECT quantiteEnStock
     INTO quantiteStock
-     FROM TypeProduit
+    FROM TypeProduit
     WHERE noProduit = :LivraisonStock.noProduit;
 
     IF: LivraisonStock.quantiteLivre > quantiteStock THEN 
@@ -210,19 +210,20 @@ CREATE OR REPLACE TRIGGER bloquerInsertionCommande
 BEFORE INSERT
         ON LigneLivraison
 REFERENCING
-        NEW AS quantiteLivree
+        NEW AS qteEnLivraison
 FOR EACH ROW
 
-DECLARE quantiteTotal INTEGER;
+DECLARE 
+        quantiteTotal LigneLivraison.quantiteLivree%TYPE;
 
 BEGIN
-        SELECT SUM(quantiteLivree) AS livraison
+        SELECT SUM(quantiteLivree)
         FROM LigneLivraison
         INTO quantiteTotal
         WHERE noProduit = TypeProduit.noProduit;
 
-        IF: quantiteLivree.livraison > quantiteTotal THEN 
-        raise_application_error(-20200, "La quantite livree ne doit pas depasser la quantite en stock")
+        IF: qteEnLivraison.livraison > quantiteTotal THEN 
+        raise_application_error(-20200, "La quantite livree ne doit pas depasser la quantite en stock");
         END IF;
 END;
 /
@@ -242,7 +243,8 @@ BEGIN
         INTO TotalPaiement
         WHERE noLivraison = Paiement.noLivraison;
 
-        IF :NouveauPaiement.montant > TotalPaiement THEN raise_application_error(-20300, "Le montant a payer ne doit pas depasser le montant du")
+        IF :NouveauPaiement.montant > TotalPaiement THEN 
+        raise_application_error(-20300, "Le montant a payer ne doit pas depasser le montant du");
         END IF;
 END;
 /
