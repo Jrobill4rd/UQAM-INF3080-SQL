@@ -206,24 +206,22 @@ END;
 CREATE OR REPLACE TRIGGER bloquerInsertionCommande
 BEFORE INSERT
         ON LigneLivraison
-REFERENCING
-        NEW AS qteEnLivraison
+
 FOR EACH ROW
 
-DECLARE 
-        quantiteTotal LigneLivraison.quantiteLivree%TYPE;
-
 BEGIN
-        SELECT SUM(quantiteLivree)
+        SELECT noProduit, noLivraison, SUM(quantiteLivree) as LivraisonEffectuee
         FROM LigneLivraison
-        INTO quantiteTotal
-        WHERE noProduit = TypeProduit.noProduit;
+        GROUP BY noLivraison, noProduit;
 
-        IF: qteEnLivraison.livraison > quantiteTotal THEN 
-        raise_application_error(-20200, "La quantite livree ne doit pas depasser la quantite en stock");
+        IF (LigneLivraison.LivraisonEffectuee > LigneCommande.quantite AND LigneLivraison.noProduit = LigneCommande.noProduit)
+                THEN raise_application_error(-20100, 'La quantite a livrer est trop elevee');
         END IF;
 END;
 /
+
+show errors
+
 --Bloquer l'insertion d'un paiement qui dépasse le montant qui reste à payer
 CREATE OR REPLACE TRIGGER bloquerPaiement
 BEFORE INSERT
