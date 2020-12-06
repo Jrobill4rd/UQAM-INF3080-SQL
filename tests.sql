@@ -196,35 +196,40 @@ BEGIN
         FROM TypeProduit
         WHERE TypeProduit.noProduit = :LivraisonStock.noProduit;
 
-        IF :LivraisonStock.quantiteLivree > quantiteStock THEN raise_application_error(-20100, 'La quantite livree ne peut depasser la quantite en stock');
+        IF :LivraisonStock.quantiteLivree > quantiteStock THEN 
+		raise_application_error(-20100, 'La quantite livree ne peut depasser la quantite en stock');
         END IF;
 END;
 /
 
 SHOW ERRORS
--- Bloquer l'insertion d'un article lorsque la quantité totale livrée dépasse la quantité commandée de la commande
+-- Bloquer l'insertion d'une livraison d'un article  lorsque la quantité totale livrée dépasse la quantité commandée de la commande
 CREATE OR REPLACE TRIGGER bloquerInsertionCommande
 BEFORE INSERT
         ON LigneLivraison
 REFERENCING
-        NEW AS qteEnLivraison
+	NEW AS NouvelleLivraison
 FOR EACH ROW
+	DECLARE
+		qteLivree	NUMBER(19);
+		qteCommandee	NUMBER(19);
+BEGIN	
+	SELECT	SUM(quantiteLivree)
+	INTO	qteLivree
+	FROM	LigneLivraison
+	WHERE	LigneLivraison.noProduit = :NouvelleLivraison.noProduit;
 
-DECLARE 
-        quantiteTotal LigneLivraison.quantiteLivree%TYPE;
+	SELECT	quantite
+	INTO	qteCommandee
+	FROM	LigneCommande
+	WHERE	LigneCommande.noProduit = :NouvelleLivraison.noProduit;
 
-BEGIN
-        SELECT SUM(quantiteLivree)
-        FROM LigneLivraison
-        INTO quantiteTotal
-        WHERE noProduit = TypeProduit.noProduit;
-
-        IF: qteEnLivraison.livraison > quantiteTotal THEN 
-        raise_application_error(-20200, "La quantite livree ne doit pas depasser la quantite en stock");
+        IF :NouvelleLivraison.quantiteLivree + qteLivree > qteCommandee THEN 
+		raise_application_error(-20100, 'La quantite a livrer est trop elevee');
         END IF;
 END;
 /
-SHOW ERRORS
+show errors
 --Bloquer l'insertion d'un paiement qui dépasse le montant qui reste à payer
 CREATE OR REPLACE TRIGGER bloquerPaiement
 BEFORE INSERT
@@ -232,19 +237,23 @@ BEFORE INSERT
 REFERENCING
         NEW AS NouveauPaiement
 FOR EACH ROW
-
-DECLARE TotalPaiement INTEGER;
-
+	DECLARE
+		totalPaiement NUMBER(19,4);
+		totalFacture  NUMBER(19,4); 
 BEGIN
-        SELECT SUM(montantSousTotal + montantTaxes)
-        FROM Facture
-        INTO TotalPaiement
-        WHERE noLivraison = Paiement.noLivraison;
-
-        IF :NouveauPaiement.montant > TotalPaiement THEN 
-        raise_application_error(-20300, "Le montant a payer ne doit pas depasser le montant du");
+	SELECT  SUM(Facture.montantSousTotal + Facture.montantTaxes)
+	INTO 	totalFacture
+	FROM	Facture
+	WHERE	Facture.noLivraison = :NouveauPaiement.noLivraison;
+	
+	SELECT	SUM(montant)
+	INTO	totalPaiement
+	FROM	Paiement
+	WHERE	Paiement.noLivraison = :NouveauPaiement.noLivraison;
+	        
+        IF :NouveauPaiement.montant > (totalFacture - totalPaiement) THEN 
+        	raise_application_error(-20300, 'Le montant a payer ne doit pas depasser le montant du');
         END IF;
 END;
 /
-
-SHOW ERRORS
+show errors
