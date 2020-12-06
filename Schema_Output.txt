@@ -26,8 +26,11 @@ SQL> DROP TABLE Client CASCADE CONSTRAINTS;
 Table dropped.
 
 SQL> DROP TABLE TypeProduit CASCADE CONSTRAINTS;
+DROP TABLE TypeProduit CASCADE CONSTRAINTS
+           *
+ERROR at line 1:
+ORA-00942: Table ou vue inexistante 
 
-Table dropped.
 
 SQL> DROP TABLE ProduitPrix CASCADE CONSTRAINTS;
 
@@ -263,29 +266,20 @@ Table created.
 SQL> -- Triggers
 SQL> 
 SQL> -- Réduire la quantité en stock d'un article en fonction de la quantité LIVRÉE
-SQL> CREATE OR REPLACE TRIGGER AjusterQteEnStock
+SQL> CREATE TRIGGER AjusterQteEnStock
   2  AFTER INSERT ON LigneLivraison
   3  REFERENCING
   4  	     NEW AS Achat
   5  FOR EACH ROW
   6  BEGIN
-  7  	 UPDATE TypeProduit
-  8  	 SET quantiteEnStock = quantiteEnStock - Achat.quantiteLivree
-  9  	 WHERE noProduit = :Achat.noProduit;
+  7  	     UPDATE TypeProduit
+  8  	     SET TypeProduit.quantiteEnStock = TypeProduit.quantiteEnStock - :Achat.quantiteLivree
+  9  	     WHERE TypeProduit.noProduit = :Achat.noProduit;
  10  END;
  11  /
 
-Warning: Trigger created with compilation errors.
+Trigger created.
 
-SQL> SHOW ERRORS
-Errors for TRIGGER AJUSTERQTEENSTOCK:
-
-LINE/COL ERROR                                                                  
--------- -----------------------------------------------------------------      
-2/5      PL/SQL: SQL Statement ignored                                          
-3/45     PL/SQL: ORA-00904: "ACHAT"."QUANTITELIVREE" : identificateur non       
-         valide                                                                 
-                                                                                
 SQL> -- Bloquer l'insertion d'une livraison d'un article lorsque la quantité livrée dépasse la quantité en stock
 SQL> CREATE OR REPLACE TRIGGER bloquerInsertionStock
   2  BEFORE INSERT
@@ -294,40 +288,24 @@ SQL> CREATE OR REPLACE TRIGGER bloquerInsertionStock
   5  	     NEW AS LivraisonStock
   6  FOR EACH ROW
   7  
-  8  DECLARE
-  9  	     quantiteStock TypeProduit.quantiteEnStock%TYPE;
- 10  
- 11  BEGIN
- 12  	 SELECT quantiteEnStock
- 13  	 INTO quantiteStock
- 14  	 FROM TypeProduit
- 15  	 WHERE noProduit = LivraisonStock.noProduit;
- 16  
- 17  	 IF: LivraisonStock.quantiteLivre > quantiteStock THEN
- 18  	 raise_application_error(-20100, 'La quantite livree ne peut depasser la quantite en stock');
- 19  	 END IF;
- 20  END;
- 21  /
+  8  DECLARE quantiteStock INTEGER;
+  9  
+ 10  BEGIN
+ 11  	     SELECT quantiteEnStock
+ 12  	     INTO quantiteStock
+ 13  	     FROM TypeProduit
+ 14  	     WHERE TypeProduit.noProduit = :LivraisonStock.noProduit;
+ 15  
+ 16  	     IF :LivraisonStock.quantiteLivree > quantiteStock THEN raise_application_error(-20100, 'La quantite livree ne peut depasser la quantite en stock');
+ 17  	     END IF;
+ 18  END;
+ 19  /
 
-Warning: Trigger created with compilation errors.
+Trigger created.
 
 SQL> 
 SQL> SHOW ERRORS
-Errors for TRIGGER BLOQUERINSERTIONSTOCK:
-
-LINE/COL ERROR                                                                  
--------- -----------------------------------------------------------------      
-10/7     PLS-00103: Encountered the symbol ":" when expecting one of the        
-         following:                                                             
-         ( - + case mod new not null <identificateur>                           
-         <identificateur entre guillemets>                                      
-         <variable attachee (bind variable)> continue avg count                 
-         current exists max min prior sql stddev sum variance execute           
-         forall merge time timestamp interval date                              
-         <un litteral de chaine avec specification de jeu de caracteres>        
-         <un nombre> <une chaine SQL entre apostrophes> pipe                    
-         <constante de chaine eventuellement entre guilleme                     
-                                                                                
+No errors.
 SQL> -- Bloquer l'insertion d'un article lorsque la quantité totale livrée dépasse la quantité commandée de la commande
 SQL> CREATE OR REPLACE TRIGGER bloquerInsertionCommande
   2  BEFORE INSERT
@@ -408,7 +386,4 @@ LINE/COL ERROR
 4/9      PL/SQL: SQL Statement ignored                                          
 6/9      PL/SQL: ORA-00933: la commande SQL ne se termine pas correctement      
 10/41    PLS-00114: identifier 'Le montant a payer ne doit pas' too long        
-SQL> 
-SQL> 
-SQL> 
 SQL> exit
