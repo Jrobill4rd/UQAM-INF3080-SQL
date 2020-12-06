@@ -171,30 +171,38 @@ CREATE TABLE PaiementCarteCredit
 -- Triggers
 
 -- Réduire la quantité en stock d'un article en fonction de la quantité LIVRÉE
-CREATE OR REPLACE TRIGGER reduireQteEnStock
+CREATE TRIGGER AjusterQteEnStock
 AFTER INSERT ON LigneLivraison
+REFERENCING
+        NEW AS Commande
 FOR EACH ROW
 BEGIN
         UPDATE TypeProduit
-        SET :NEW.TypeProduit.quantiteEnStock = :OLD.TypeProduit.quantiteEnStock - LigneLivraison.quantiteLivree
-        WHERE TypeProduit.noProduit = LigneLivraison.noProduit;
+        SET quantiteEnStock = quantiteEnStock - Commande.quantiteLivree
+        WHERE noProduit = Commande.noProduit;
 END
 /
 -- Bloquer l'insertion d'une livraison d'un article lorsque la quantité livrée dépasse la quantité en stock
 CREATE OR REPLACE TRIGGER bloquerInsertionStock
 BEFORE INSERT
-        ON LigneLivraison FOR EACH ROW
+        ON LigneLivraison
+REFERENCING
+        NEW AS LivraisonStock
+FOR EACH ROW
+
+DECLARE quantiteStock INTEGER;
 
 BEGIN
-WHERE (LigneLivraison.noProduit = TypeProduit.noProduit)
-        IF (LigneLivraison.quantiteLivre > TypeProduit.quantiteEnStock)
-                BEGIN
-                        ROLLBACK TRANSACTION
-                        RAISEERROR ("La quantite livree ne peut depasser la quantite en stock", 16, 1)
-                END;
+        SELECT quantiteEnStock
+        INTO quantiteStock
+        FROM TypeProduit
+        WHERE noProduit = :LivraisonStock.noProduit;
+
+        IF :LivraisonStock.quantiteLivre > quantiteStock THEN raise_application_error(-20100, 'La quantite livree ne peut depasser la quantite en stock');
         END IF;
 END;
 /
+
 
 -- Bloquer l'insertion d'un article lorsque la quantité totale livrée dépasse la quantité commandée de la commande
 CREATE OR REPLACE TRIGGER bloquerInsertionCommande
