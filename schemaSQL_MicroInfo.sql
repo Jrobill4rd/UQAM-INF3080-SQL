@@ -87,8 +87,8 @@ CREATE TABLE Commande
 CREATE TABLE LigneCommande
 (noCommande		NUMBER(19)		NOT NULL,
  noProduit		NUMBER(19)		NOT NULL,
- quantitelivree 		NUMBER(19)		NOT NULL,
- CHECK (quantitelivree > 0),
+ quantite 		NUMBER(19)		NOT NULL,
+ CHECK (quantite > 0),
  PRIMARY KEY (noCommande, noProduit),
  FOREIGN KEY (noCommande) REFERENCES Commande,
  FOREIGN KEY (noProduit)  REFERENCES Produit
@@ -118,6 +118,7 @@ CREATE TABLE Facture
 (noLivraison 		NUMBER(19)		NOT NULL,
  montantSousTotal	NUMBER(19,4)	NOT NULL,
  montantTaxes 		NUMBER(19,4)	NOT NULL,
+ dateLimitePaiment  DATE            NOT NULL,
  PRIMARY KEY (noLivraison),
  FOREIGN KEY (noLivraison) REFERENCES Livraison
  )
