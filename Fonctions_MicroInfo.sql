@@ -32,3 +32,14 @@ BEGIN
     RETURN  MontTotalFacture;
 END fTotalFacture;
 /
+
+CREATE OR REPLACE PROCEDURE p_ProduireFacture
+(unNoLivraison Facture.NoLivraison%TYPE , uneDateLimite Facture.dateLimitePaiement%TYPE) 
+
+DECLARE
+unMontantTotal Facture.montantSousTotal%TYPE
+
+BEGIN
+
+END;
+/
