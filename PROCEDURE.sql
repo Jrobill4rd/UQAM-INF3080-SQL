@@ -20,7 +20,22 @@ CREATE OR REPLACE PROCEDURE DetailFacture(noLivraison_facture IN CHAR) IS
 FactureNoLivraison CHAR;
 
 BEGIN
-SELECT Facture.noLivraison, Livraison.dateLivraison, Commande.noCommande, Commande.noClient, noProduit, LigneCommande.quantite, ProduitPrix.prix, TypeProduit.description, Client.prenom, Client.nom, Client.telephone, Client.noCivique, Client.rue, Client.ville, Client.pays, Client.codePostal
+SELECT Facture.noLivraison, 
+Livraison.dateLivraison, 
+Commande.noCommande, 
+Commande.noClient, 
+LigneCommande.noProduit, 
+LigneCommande.quantite, 
+ProduitPrix.prix, 
+TypeProduit.description, 
+Client.prenom, 
+Client.nom, 
+Client.telephone, 
+Client.noCivique, 
+Client.rue, 
+Client.ville, 
+Client.pays, 
+Client.codePostal
 FROM Facture
 INNER JOIN Livraison
         ON Facture.noLivraison = Livraison.noLivraison
@@ -53,8 +68,8 @@ LOOP
         DBMS_OUTPUT.PUT_LINE(Client.pays);
         DBMS_OUTPUT.PUT_LINE(Client.codePostal);
         DBMS_OUTPUT.PUT_LINE('Voici la liste détaillée de la commande ' || Commande.noCommande);
-        DBMS_OUTPUT.PUT_LINE('No Commande: ' || Commande.noCommande);
-        DBMS_OUTPUT.PUT_LINE('No Commande: ' || Commande.noCommande);
-        DBMS_OUTPUT.PUT_LINE('No Commande: ' || Commande.noCommande);
-        DBMS_OUTPUT.PUT_LINE('No Commande: ' || Commande.noCommande);
+        DBMS_OUTPUT.PUT_LINE('No produit: ' || LigneCommande.noProduit);
+        DBMS_OUTPUT.PUT_LINE('Prix du produit : ' || ProduitPrix.prix);
+        DBMS_OUTPUT.PUT_LINE('Description du produit: ' || TypeProduit.description);
+        DBMS_OUTPUT.PUT_LINE('Quantité commandé: ' || LigneCommande.quantite);
 
