@@ -15,7 +15,7 @@ Table created.
 
 SQL> CREATE TABLE Fournisseur
   2  (noUsager		     NUMBER(19) 	     NOT NULL,
-  3   noFournisseur  NUMBER(19) 	     NOT NULL	     UNIQUE,
+  3   noFournisseur  NUMBER(19) 	     NOT NULL,
   4   telephone 	     CHAR(10)		     NOT NULL,
   5   raisonSociale  VARCHAR(50)	     NOT NULL,
   6   noCivique 	     NUMBER(19) 	     NOT NULL,
@@ -23,19 +23,19 @@ SQL> CREATE TABLE Fournisseur
   8   ville		     VARCHAR(50)	     NOT NULL,
   9   pays		     VARCHAR(50)	     NOT NULL,
  10   codePostal	     VARCHAR(6) 	     NOT NULL,
- 11   FOREIGN KEY    (noUsager) REFERENCES Usager
- 12  )
- 13  /
+ 11   PRIMARY KEY    (noFournisseur),
+ 12   FOREIGN KEY    (noUsager) REFERENCES Usager
+ 13  )
+ 14  /
 
 Table created.
 
 SQL> CREATE TABLE Produit
-  2  (produitId 	     NUMBER(19) 	     NOT NULL,
-  3   noProduit 	     NUMBER(19) 	     NOT NULL,
-  4   codeZebre 	     CHAR(12)		     NOT NULL,
-  5   PRIMARY KEY    (produitId)
-  6  )
-  7  /
+  2  (noProduit 	     NUMBER(19) 	     NOT NULL,
+  3   codeZebre 	     CHAR(12)		     NOT NULL,
+  4   PRIMARY KEY    (noProduit)
+  5  )
+  6  /
 
 Table created.
 
@@ -48,11 +48,8 @@ SQL> CREATE TABLE PrioriteFournisseur
   7   FOREIGN KEY    (noProduit)	     REFERENCES Produit
   8  )
   9  /
- FOREIGN KEY	(noFournisseur) REFERENCES Fournisseur,
-            	                           *
-ERROR at line 6:
-ORA-02268: table referencee ne contient pas de cle primaire 
 
+Table created.
 
 SQL> CREATE TABLE Client
   2  (noClient		     NUMBER(19) 	     NOT NULL,
@@ -74,13 +71,14 @@ SQL> CREATE TABLE Client
 Table created.
 
 SQL> CREATE TABLE TypeProduit
-  2  (noProduit 		     NUMBER(19) 	     NOT NULL	     UNIQUE,
+  2  (noProduit 		     NUMBER(19) 	     NOT NULL	     ,
   3   description	     VARCHAR(250)    NOT NULL,
   4   minimumEnStock	     NUMBER(19)      NOT NULL,
   5   quantiteEnStock	     NUMBER(19)      NOT NULL,
-  6   FOREIGN KEY (noProduit) REFERENCES Produit
-  7  )
-  8  /
+  6   PRIMARY KEY (noProduit),
+  7   FOREIGN KEY (noProduit) REFERENCES Produit
+  8  )
+  9  /
 
 Table created.
 
@@ -140,7 +138,7 @@ SQL> CREATE TABLE LigneLivraison
   5   quantiteLivree	 NUMBER(19)	 NOT NULL,
   6   PRIMARY KEY (noLivraison),
   7   FOREIGN KEY (noLivraison) REFERENCES Livraison,
-  8   FOREIGN KEY (noProduit)	REFERENCES Produit,
+  8   FOREIGN KEY (noProduit)	REFERENCES TypeProduit,
   9   FOREIGN KEY (noCommande)	REFERENCES Commande
  10  )
  11  /
@@ -230,7 +228,7 @@ SQL> CREATE OR REPLACE TRIGGER bloquerInsertionStock
  14  	     WHERE TypeProduit.noProduit = :LivraisonStock.noProduit;
  15  
  16  	     IF :LivraisonStock.quantiteLivree > quantiteStock THEN
- 17  		     raise_application_error(-20100, 'La quantite livree ne peut depasser la quantite en stock');
+ 17  		     RAISE_APPLICATION_ERROR (-20100, 'La quantite livree ne peut depasser la quantite en stock');
  18  	     END IF;
  19  END;
  20  /
@@ -295,4 +293,192 @@ SQL> CREATE OR REPLACE TRIGGER bloquerPaiement
 
 Trigger created.
 
+SQL> 
+SQL> @tests.sql
+SQL> SET SERVEROUTPUT ON
+SQL> 
+SQL> -- test check type usager
+SQL> /* TEST QUI FONCTIONNE == VRAI */
+SQL> /* Creation d'un usager */
+SQL> 
+SQL> INSERT INTO Usager VALUES (001, 'INF3080', 'Client');
+
+1 row created.
+
+SQL> 
+SQL> /* TEST QUI NE FONCTIONNE PAS == FAUX */
+SQL> /* Creation d'un usager */
+SQL> 
+SQL> INSERT INTO Usager VALUES (002, 'Banane3', 'Rongeur');
+INSERT INTO Usager VALUES (002, 'Banane3', 'Rongeur')
+*
+ERROR at line 1:
+ORA-02290: violation de contraintes (EF591052.SYS_C004976111) de verification 
+
+
+SQL> 
+SQL> -- test type de commande "status"
+SQL> /* TEST QUI FONCTIONNE == VRAI */
+SQL> /* Creation d'une commande */
+SQL> 
+SQL> INSERT INTO Client VALUES (01,001, 'John', 'Doe', '0-000-0000', 'Sociable', 000, 'des oiseaux', 'Montreal', 'Canada', 'H0H0H0');
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO Commande VALUES(0001, 01, '2020-12-06', 'Payee');
+
+1 row created.
+
+SQL> 
+SQL> /* TEST QUI NE FONCTIONNE PAS == FAUX */
+SQL> /* Creation d'une commande */
+SQL> 
+SQL> INSERT INTO Usager VALUES (002, 'Banane3', 'Client');
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO Client VALUES (02,002, 'John', 'Doe', '0-000-0000', 'Sociable', 000, 'des oiseaux', 'Montreal', 'Canada', 'H0H0H0');
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO Commande VALUES(0002, 02, '2020-12-06', 'Au depanneur');
+INSERT INTO Commande VALUES(0002, 02, '2020-12-06', 'Au depanneur')
+*
+ERROR at line 1:
+ORA-02290: violation de contraintes (EF591052.SYS_C004976160) de verification 
+
+
+SQL> 
+SQL> -- test check quantitee commandee
+SQL> /* TEST QUI FONCTIONNE == VRAI */
+SQL> /* Creation d'une ligne de commande */
+SQL> 
+SQL> INSERT INTO Produit VALUES (01,'000000000001');
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO LigneCommande VALUES(0001, 01, 12);
+
+1 row created.
+
+SQL> 
+SQL> /* TEST QUI NE FONCTIONNE PAS == FAUX */
+SQL> /* Creation d'une ligne de commande */
+SQL> 
+SQL> INSERT INTO Produit VALUES (02,'000000000002');
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO Commande VALUES (0002, 02, '2020-12-16', 'Payee');
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO LigneCommande VALUES (0002, 02, -1);
+INSERT INTO LigneCommande VALUES (0002, 02, -1)
+*
+ERROR at line 1:
+ORA-02290: violation de contraintes (EF591052.SYS_C004976166) de verification 
+
+
+SQL> 
+SQL> -- test check type de carte de credit
+SQL> /* TEST QUI FONCTIONNE == VRAI */
+SQL> /* Creation d'un paiement par carte */
+SQL> 
+SQL> INSERT INTO Livraison VALUES (0001, 01, '2021-01-01');
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO Paiement VALUES (0001, 0001, '2020-12-16', 2000 );
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO PaiementCarteCredit VALUES (0001, '0000 0000 0000' , 'Visa', '2025-01-01');
+
+1 row created.
+
+SQL> 
+SQL> /* TEST QUI NE FONCTIONNE PAS == FAUX */
+SQL> /* Creation d'un paiement par carte */
+SQL> 
+SQL> INSERT INTO Livraison VALUES (0002, 02, '2021-01-01');
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO Paiement VALUES (0002, 0002, '2020-12-16', 2000 );
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO PaiementCarteCredit VALUES (0002, '0000 0000 0000' , 'Capital One', '2021-05-16');
+INSERT INTO PaiementCarteCredit VALUES (0002, '0000 0000 0000' , 'Capital One', '2021-05-16')
+*
+ERROR at line 1:
+ORA-02290: violation de contraintes (EF591052.SYS_C004976203) de verification 
+
+
+SQL> 
+SQL> -- test trigger quantite en stock
+SQL> /* TEST QUE LE TRIGGER FONCTIONNE == VRAI */
+SQL> 
+SQL> INSERT INTO TypeProduit VALUES (01, 'Disque Dur', 20, 50);
+
+1 row created.
+
+SQL> 
+SQL> SELECT quantiteEnStock
+  2  FROM TypeProduit;
+
+QUANTITEENSTOCK                                                                 
+---------------                                                                 
+             50                                                                 
+
+SQL> 
+SQL> INSERT INTO LigneLivraison VALUES (0001, 01, 0001, 15);
+
+1 row created.
+
+SQL> 
+SQL> SELECT quantiteEnStock
+  2  FROM TypeProduit;
+
+QUANTITEENSTOCK                                                                 
+---------------                                                                 
+             35                                                                 
+
+SQL> 
+SQL> -- test trigger bloquer la livraison dun article > que la quantite en stock
+SQL> /* TEST QUI FONCTIONNE == VRAI */
+SQL> 
+SQL> INSERT INTO LigneLivraison VALUES (0002, 01, 0002, 55)
+  2  
+SQL> -- test trigger bloquer la livraison article > ce qui est deja livree
+SQL> /* TEST QUI FONCTIONNE == VRAI */
+SQL> 
+SQL> 
+SQL> 
+SQL> -- test trigger paiement total
+SQL> /* TEST QUI FONCTIONNE == VRAI */
+SQL> 
+SQL> 
+SQL> 
+SQL> -- test fonction quantite deja livree
+SQL> /* TEST QUI FONCTIONNE == VRAI */
+SQL> 
+SQL> 
+SQL> 
+SQL> -- test total facture
+SQL> /* TEST QUI FONCTIONNE == VRAI */
+SQL> 																										 1,1	       All
+SP2-0734: unknown command beginning "1,1       ..." - rest of line ignored.
+SQL> 
 SQL> exit

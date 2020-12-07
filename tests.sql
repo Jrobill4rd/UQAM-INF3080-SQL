@@ -99,5 +99,3 @@ INSERT INTO LigneLivraison VALUES (0002, 01, 0002, 55)
 
 -- test total facture
 /* TEST QUI FONCTIONNE == VRAI */
-                                                                                                                                                                                                            1,1           All
-
