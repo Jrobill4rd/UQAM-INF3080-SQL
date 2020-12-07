@@ -72,4 +72,6 @@ LOOP
         DBMS_OUTPUT.PUT_LINE('Prix du produit : ' || ProduitPrix.prix);
         DBMS_OUTPUT.PUT_LINE('Description du produit: ' || TypeProduit.description);
         DBMS_OUTPUT.PUT_LINE('Quantité commandé: ' || LigneCommande.quantite);
+END LOOP;
+END;
 
