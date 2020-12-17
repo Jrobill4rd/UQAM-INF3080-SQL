@@ -16,6 +16,8 @@
 
 CREATE OR REPLACE PROCEDURE DetailFacture ( no_livraison NUMBER ) IS
 
+DECLARE
+
 l_facture_no_livraison Facture.noLivraison%TYPE;
 l_facture_date_livraison Livraison.dateLivraison%TYPE;
 l_facture_no_commande Commande.noCommande%TYPE;
@@ -114,4 +116,4 @@ BEGIN
 END;
 
 
-
+-- penser que je peux utiliser le curseur avec une loop
