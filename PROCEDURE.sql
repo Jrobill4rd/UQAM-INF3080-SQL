@@ -24,8 +24,8 @@ CURSOR produitscommande IS
          SELECT        
                   LigneCommande.noProduit produit,
                   LigneCommande.quantite quantite,
+                  TypeProduit.description description,
                   ProduitPrix.prix prix,
-                  TypeProduit.description description
          FROM LigneCommande, ProduitPrix, TypeProduit
          WHERE no_livraison = LigneLivraison.noLivraison AND LigneLivraison.noCommande = LigneCommande.noCommande
          AND LigneCommande.noProduit = ProduitPrix.noProduit AND LigneCommande.noProduit = TypeProduit.noProduit ;
@@ -34,11 +34,7 @@ CURSOR produitscommande IS
  l_facture_curseur produitscommande%ROWTYPE;
  l_facture_prixtotal ProduitPrix.prix%TYPE;
  
- BEGIN
-      OPEN produitscommande;
-      FETCH produitscommande INTO l_facture_curseur;
-      CLOSE produitscommande
-     
+ BEGIN     
          SELECT
                 Facture.noLivraison nolivraison,
                 Livraison.dateLivraison datelivraison,
@@ -87,5 +83,12 @@ CURSOR produitscommande IS
         DBMS_OUTPUT.PUT_LINE(l_facture_livraison.pays);
         DBMS_OUTPUT.PUT_LINE(l_facture_livraison.codepostal);
         DBMS_OUTPUT.PUT_LINE('Voici la liste détaillée de la commande ' || l_facture_curseur);
-
+         
+      OPEN produitscommande;
+      LOOP
+         FETCH produitscommande INTO l_facture_curseur;
+         DBMS_OUTPUT.PUT_LINE(l_facture_curseur);
+         EXIT WHEN produitscommande%NOTFOUND;
+      END LOOP
+      CLOSE produitscommande;
 END;
