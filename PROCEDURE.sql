@@ -33,8 +33,6 @@ l_facture_ville_client Client.ville%TYPE;
 l_facture_pays_client Client.pays%TYPE;
 l_facture_codepostal_client Client.codePostal%TYPE;
 
-
-
 CURSOR detailscommande IS
          SELECT
                 Facture.noLivraison,
