@@ -35,7 +35,16 @@ l_facture_ville_client Client.ville%TYPE;
 l_facture_pays_client Client.pays%TYPE;
 l_facture_codepostal_client Client.codePostal%TYPE;
 
-CURSOR detailscommande IS
+CURSOR produitscommande IS
+         SELECT        
+                  LigneCommande.noProduit,
+                  LigneCommande.quantite,
+                  ProduitPrix.prix,
+                  TypeProduit.description,
+         FROM LigneCommande, ProduitPrix, TypeProduit
+         WHERE 
+ 
+ BEGIN
          SELECT
                 Facture.noLivraison,
                 Livraison.dateLivraison,
@@ -53,6 +62,23 @@ CURSOR detailscommande IS
                 Client.ville,
                 Client.pays,
                 Client.codePostal
+        INTO
+                l_facture_no_livraison,
+                l_facture_date_livraison,
+                l_facture_no_commande,
+                l_facture_no_client,
+                l_facture_no_produit,
+                l_facture_quantite,
+                l_facture_prix_produit,
+                l_facture_description_produit,
+                l_facture_prenom_client,
+                l_facture_nom_client,
+                l_facture_telephone_client,
+                l_facture_noCivique_client,
+                l_facture_rue_client,
+                l_facture_ville_client,
+                l_facture_pays_client,
+                l_facture_codepostal_client;
 
         FROM Facture
                 INNER JOIN Livraison
@@ -72,27 +98,6 @@ CURSOR detailscommande IS
 
         WHERE
                 noLivraison_facture = Facture.noLivraison;
-
-BEGIN
-
-        OPEN detailscommande;
-        FETCH detailscommande INTO
-                l_facture_no_livraison,
-                l_facture_date_livraison,
-                l_facture_no_commande,
-                l_facture_no_client,
-                l_facture_no_produit,
-                l_facture_quantite,
-                l_facture_prix_produit,
-                l_facture_description_produit,
-                l_facture_prenom_client,
-                l_facture_nom_client,
-                l_facture_telephone_client,
-                l_facture_noCivique_client,
-                l_facture_rue_client,
-                l_facture_ville_client,
-                l_facture_pays_client,
-                l_facture_codepostal_client;
 
         DBMS_OUTPUT.PUT_LINE('No Client: ' || l_facture_no_client);
         DBMS_OUTPUT.PUT_LINE('No Facture: ' || Facture.noLivraison);
