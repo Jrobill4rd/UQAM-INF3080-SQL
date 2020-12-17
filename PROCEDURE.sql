@@ -89,6 +89,6 @@ CURSOR produitscommande IS
          FETCH produitscommande INTO l_facture_curseur;
          DBMS_OUTPUT.PUT_LINE(l_facture_curseur);
          EXIT WHEN produitscommande%NOTFOUND;
-      END LOOP
+      END LOOP;
       CLOSE produitscommande;
 END;
