@@ -117,3 +117,31 @@ END;
 
 
 -- penser que je peux utiliser le curseur avec une loop
+CREATE OR REPLACE PROCEDURE p_PreparerLivraison
+        (numCommande NUMBER(19)) IS
+        ---Déclaration de variables
+        num_client Commande.noClient%TYPE;
+        prenom_client Client.prenom%TYPE;
+        nom_client Client.nom%TYPE;
+        tel_client Client.telephone%TYPE;
+        adr_client Client.noCivique%TYPE;
+        rue_client Client.rue%TYPE;
+        ville_client Client.ville%TYPE;
+        pays_client Client.pays%TYPE;
+        codepostal_client Client.codePostal%TYPE;
+        descript_produit TypeProduit.description%TYPE;
+        code_zebre Produit.codeZebre%TYPE;
+
+        qte_a_livrer Commande.quantite%TYPE; --la quantité à livrer
+        num_Livraison Livraison.noLivraison%TYPE; --le numéro de livraison de la commande
+
+        --Déclaration d'un curseur sur les produits de la commande.
+        CURSOR cur_produits_commandee IS
+                SELECT noProduit, quantite,
+                FROM   LigneCommande
+                WHERE  LigneCommande.noCommande = numCommande;
+
+BEGIN
+        DBMS_OUTPUT.PUT_LINE('Numéro de commande:' || numCommande)
+END;
+/
