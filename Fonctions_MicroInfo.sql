@@ -53,7 +53,7 @@ CREATE OR REPLACE PROCEDURE p_PreparerLivraison
         l_num_produit     TypeProduit.noProduit%TYPE; -- le numéro de produit
         l_desc_prod TypeProduit.description%TYPE; --la description du produit
         l_code_zebre Produit.codeZebre%TYPE; -- le code zebre du produit
-        l_qte_a_livrer Commande.quantite%TYPE; --la quantité à livrer
+        l_qte_a_livrer LigneCommande.quantite%TYPE; --la quantité à livrer
 
         num_Livraison Livraison.noLivraison%TYPE; --le numéro de livraison de la commande
 
@@ -61,19 +61,18 @@ CREATE OR REPLACE PROCEDURE p_PreparerLivraison
         CURSOR cur_produits_commandee IS
                 SELECT noProduit
                 FROM   LigneCommande
-                WHERE  LigneCommande.noCommande = :numCommande;
+                WHERE  LigneCommande.noCommande = numCommande;
 
 BEGIN
-        DBMS_OUTPUT.PUT_LINE('Numéro de commande:' || numCommande)
+        DBMS_OUTPUT.PUT_LINE('Numéro de commande:' || numCommande);
         SELECT  noClient
+	INTO	l_num_client
         FROM    Commande
-        INTO    l_num_client
-        WHERE   Commande.noCommande = :numCommande;
+        WHERE   Commande.noCommande = numCommande;
 
-        SELECT prenom,nom, telephone,qualite,noCivique, rue, ville, pays, codePostal
-        FROM   Client
-        INTO   l_client.prenom, l_client.nom, l_client.telephone, l_client.qualite,l_client.noCivique
-                l_client.rue, l_client.ville, l_client.pays, l_client.codePostal
+        SELECT prenom,nom,telephone,qualite,noCivique,rue,ville,pays,codePostal
+        INTO   l_client.prenom, l_client.nom,l_client.telephone,l_client.qualite,l_client.noCivique,l_client.rue,l_client.ville,l_client.pays,l_client.codePostal
+	FROM	Client
         WHERE   Client.noClient = l_num_client;
         DBMS_OUTPUT.PUT_LINE('NoClient:' || l_num_client);
         DBMS_OUTPUT.PUT_LINE('Prenom:' || l_client.prenom);
@@ -91,17 +90,17 @@ BEGIN
                 SELECT codeZebre
                 INTO    l_code_zebre
                 FROM   Produit
-                WHERE  Produit.noProduit = :l_num_produit;
+                WHERE  Produit.noProduit = l_num_produit;
 
                 SELECT description
                 INTO    l_desc_prod
                 FROM    TypeProduit
-                WHERE  Produit.noProduit = :l_num_produit;
+                WHERE  TypeProduit.noProduit = l_num_produit;
 
                 SELECT quantite
-                INTO   l_qte_a_livrer;
-                FROM    Commande
-                WHERE  Produit.noProduit = :l_num_produit;
+                INTO   l_qte_a_livrer
+                FROM    LigneCommande
+                WHERE  LigneCommande.noProduit = l_num_produit;
 
                 DBMS_OUTPUT.PUT_LINE('NoProduit | CodeZebre | description | quantite');
                 DBMS_OUTPUT.PUT_LINE('==============================================');
@@ -111,3 +110,4 @@ BEGIN
         CLOSE cur_produits_commandee;
 END;
 /
+SHOW ERRORS

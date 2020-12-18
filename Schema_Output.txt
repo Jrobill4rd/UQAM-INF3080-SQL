@@ -293,192 +293,127 @@ SQL> CREATE OR REPLACE TRIGGER bloquerPaiement
 
 Trigger created.
 
+SQL> @Fonctions_MicroInfo.sql
+SQL> SET ECHO ON
+SQL> -- Script Oracle SQL*plus de creation du schema Micro-Info
+SQL> -- Version sans accents
 SQL> 
-SQL> @tests.sql
-SQL> SET SERVEROUTPUT ON
+SQL> -- Creation des fonctions
+SQL> SET ECHO ON
 SQL> 
-SQL> -- test check type usager
-SQL> /* TEST QUI FONCTIONNE == VRAI */
-SQL> /* Creation d'un usager */
-SQL> 
-SQL> INSERT INTO Usager VALUES (001, 'INF3080', 'Client');
+SQL> CREATE OR REPLACE FUNCTION fQteDejaLivree
+  2  (unNoProduit LigneLivraison.noProduit%TYPE, unNoCommande LigneLivraison.noCommande%TYPE)
+  3  RETURN  LigneLivraison.quantiteLivree%TYPE IS
+  4  
+  5  	 quantiteDejalivree LigneLivraison.quantiteLivree%TYPE;
+  6  BEGIN
+  7  	SELECT	 SUM(quantiteLivree)
+  8  	INTO	 quantiteDejalivree
+  9  	FROM	 LigneLivraison
+ 10  	WHERE	 noProduit = unNoProduit AND noCommande = unNoCommande;
+ 11  	RETURN	 quantiteDejalivree;
+ 12  END fQteDejaLivree;
+ 13  /
 
-1 row created.
-
-SQL> 
-SQL> /* TEST QUI NE FONCTIONNE PAS == FAUX */
-SQL> /* Creation d'un usager */
-SQL> 
-SQL> INSERT INTO Usager VALUES (002, 'Banane3', 'Rongeur');
-INSERT INTO Usager VALUES (002, 'Banane3', 'Rongeur')
-*
-ERROR at line 1:
-ORA-02290: violation de contraintes (EF591052.SYS_C004976111) de verification 
-
-
-SQL> 
-SQL> -- test type de commande "status"
-SQL> /* TEST QUI FONCTIONNE == VRAI */
-SQL> /* Creation d'une commande */
-SQL> 
-SQL> INSERT INTO Client VALUES (01,001, 'John', 'Doe', '0-000-0000', 'Sociable', 000, 'des oiseaux', 'Montreal', 'Canada', 'H0H0H0');
-
-1 row created.
+Function created.
 
 SQL> 
-SQL> INSERT INTO Commande VALUES(0001, 01, '2020-12-06', 'Payee');
+SQL> CREATE OR REPLACE FUNCTION fTotalFacture
+  2  (unNoLivraison Facture.noLivraison%TYPE)
+  3  RETURN Facture.montantSousTotal%TYPE IS
+  4  
+  5  	 MontTotalFacture Facture.montantSousTotal%TYPE;
+  6  BEGIN
+  7  	 SELECT  SUM(montantSousTotal + montantTaxes)
+  8  	 INTO	 MontTotalFacture
+  9  	 FROM	 Facture
+ 10  	 WHERE	 noLivraison = unNoLivraison;
+ 11  	 RETURN  MontTotalFacture;
+ 12  END fTotalFacture;
+ 13  /
 
-1 row created.
+Function created.
 
-SQL> 
-SQL> /* TEST QUI NE FONCTIONNE PAS == FAUX */
-SQL> /* Creation d'une commande */
-SQL> 
-SQL> INSERT INTO Usager VALUES (002, 'Banane3', 'Client');
-
-1 row created.
-
-SQL> 
-SQL> INSERT INTO Client VALUES (02,002, 'John', 'Doe', '0-000-0000', 'Sociable', 000, 'des oiseaux', 'Montreal', 'Canada', 'H0H0H0');
-
-1 row created.
-
-SQL> 
-SQL> INSERT INTO Commande VALUES(0002, 02, '2020-12-06', 'Au depanneur');
-INSERT INTO Commande VALUES(0002, 02, '2020-12-06', 'Au depanneur')
-*
-ERROR at line 1:
-ORA-02290: violation de contraintes (EF591052.SYS_C004976160) de verification 
-
-
-SQL> 
-SQL> -- test check quantitee commandee
-SQL> /* TEST QUI FONCTIONNE == VRAI */
-SQL> /* Creation d'une ligne de commande */
-SQL> 
-SQL> INSERT INTO Produit VALUES (01,'000000000001');
-
-1 row created.
-
-SQL> 
-SQL> INSERT INTO LigneCommande VALUES(0001, 01, 12);
-
-1 row created.
-
-SQL> 
-SQL> /* TEST QUI NE FONCTIONNE PAS == FAUX */
-SQL> /* Creation d'une ligne de commande */
-SQL> 
-SQL> INSERT INTO Produit VALUES (02,'000000000002');
-
-1 row created.
-
-SQL> 
-SQL> INSERT INTO Commande VALUES (0002, 02, '2020-12-16', 'Payee');
-
-1 row created.
-
-SQL> 
-SQL> INSERT INTO LigneCommande VALUES (0002, 02, -1);
-INSERT INTO LigneCommande VALUES (0002, 02, -1)
-*
-ERROR at line 1:
-ORA-02290: violation de contraintes (EF591052.SYS_C004976166) de verification 
-
-
-SQL> 
-SQL> -- test check type de carte de credit
-SQL> /* TEST QUI FONCTIONNE == VRAI */
-SQL> /* Creation d'un paiement par carte */
-SQL> 
-SQL> INSERT INTO Livraison VALUES (0001, 01, '2021-01-01');
-
-1 row created.
-
-SQL> 
-SQL> INSERT INTO Paiement VALUES (0001, 0001, '2020-12-16', 2000 );
-
-1 row created.
-
-SQL> 
-SQL> INSERT INTO PaiementCarteCredit VALUES (0001, '0000 0000 0000' , 'Visa', '2025-01-01');
-
-1 row created.
-
-SQL> 
-SQL> /* TEST QUI NE FONCTIONNE PAS == FAUX */
-SQL> /* Creation d'un paiement par carte */
-SQL> 
-SQL> INSERT INTO Livraison VALUES (0002, 02, '2021-01-01');
-
-1 row created.
-
-SQL> 
-SQL> INSERT INTO Paiement VALUES (0002, 0002, '2020-12-16', 2000 );
-
-1 row created.
-
-SQL> 
-SQL> INSERT INTO PaiementCarteCredit VALUES (0002, '0000 0000 0000' , 'Capital One', '2021-05-16');
-INSERT INTO PaiementCarteCredit VALUES (0002, '0000 0000 0000' , 'Capital One', '2021-05-16')
-*
-ERROR at line 1:
-ORA-02290: violation de contraintes (EF591052.SYS_C004976203) de verification 
-
-
-SQL> 
-SQL> -- test trigger quantite en stock
-SQL> /* TEST QUE LE TRIGGER FONCTIONNE == VRAI */
-SQL> 
-SQL> INSERT INTO TypeProduit VALUES (01, 'Disque Dur', 20, 50);
-
-1 row created.
-
-SQL> 
-SQL> SELECT quantiteEnStock
-  2  FROM TypeProduit;
-
-QUANTITEENSTOCK                                                                 
----------------                                                                 
-             50                                                                 
-
-SQL> 
-SQL> INSERT INTO LigneLivraison VALUES (0001, 01, 0001, 15);
-
-1 row created.
-
-SQL> 
-SQL> SELECT quantiteEnStock
-  2  FROM TypeProduit;
-
-QUANTITEENSTOCK                                                                 
----------------                                                                 
-             35                                                                 
-
-SQL> 
-SQL> -- test trigger bloquer la livraison dun article > que la quantite en stock
-SQL> /* TEST QUI FONCTIONNE == VRAI */
-SQL> 
-SQL> INSERT INTO LigneLivraison VALUES (0002, 01, 0002, 55)
-  2  
-SQL> -- test trigger bloquer la livraison article > ce qui est deja livree
-SQL> /* TEST QUI FONCTIONNE == VRAI */
 SQL> 
 SQL> 
 SQL> 
-SQL> -- test trigger paiement total
-SQL> /* TEST QUI FONCTIONNE == VRAI */
-SQL> 
-SQL> 
-SQL> 
-SQL> -- test fonction quantite deja livree
-SQL> /* TEST QUI FONCTIONNE == VRAI */
-SQL> 
-SQL> 
-SQL> 
-SQL> -- test total facture
-SQL> /* TEST QUI FONCTIONNE == VRAI */
-SQL> 																										 1,1	       All
-SP2-0734: unknown command beginning "1,1       ..." - rest of line ignored.
-SQL> 
+SQL> ---
+SQL> ---
+SQL> ---
+SQL> ---
+SQL> ---
+SQL> ---
+SQL> ---
+SQL> CREATE OR REPLACE PROCEDURE p_PreparerLivraison
+  2  	     (numCommande Commande.noCommande%TYPE, date_livraison Livraison.dateLivraison%TYPE) IS
+  3  
+  4  	     ---Déclaration de variables des informations client
+  5  	     l_num_client Commande.noClient%TYPE;
+  6  	     l_client Client%ROWTYPE;
+  7  	     l_codepostal_client Client.codePostal%TYPE;
+  8  	     --Déclaration de variables des informations pour chaque produit
+  9  	     l_num_produit     TypeProduit.noProduit%TYPE; -- le numéro de produit
+ 10  	     l_desc_prod TypeProduit.description%TYPE; --la description du produit
+ 11  	     l_code_zebre Produit.codeZebre%TYPE; -- le code zebre du produit
+ 12  	     l_qte_a_livrer Commande.quantite%TYPE; --la quantité à livrer
+ 13  
+ 14  	     num_Livraison Livraison.noLivraison%TYPE; --le numéro de livraison de la commande
+ 15  
+ 16  	     --Déclaration d'un curseur sur les produits de la commande.
+ 17  	     CURSOR cur_produits_commandee IS
+ 18  		     SELECT noProduit
+ 19  		     FROM   LigneCommande
+ 20  		     WHERE  LigneCommande.noCommande = :numCommande;
+ 21  
+ 22  BEGIN
+ 23  	     DBMS_OUTPUT.PUT_LINE('Numéro de commande:' || numCommande)
+ 24  	     SELECT  noClient
+ 25  	     FROM    Commande
+ 26  	     INTO    l_num_client
+ 27  	     WHERE   Commande.noCommande = :numCommande;
+ 28  
+ 29  	     SELECT prenom,nom, telephone,qualite,noCivique, rue, ville, pays, codePostal
+ 30  	     FROM   Client
+ 31  	     INTO   l_client.prenom, l_client.nom, l_client.telephone, l_client.qualite,l_client.noCivique
+ 32  		     l_client.rue, l_client.ville, l_client.pays, l_client.codePostal
+ 33  	     WHERE   Client.noClient = l_num_client;
+ 34  	     DBMS_OUTPUT.PUT_LINE('NoClient:' || l_num_client);
+ 35  	     DBMS_OUTPUT.PUT_LINE('Prenom:' || l_client.prenom);
+ 36  	     DBMS_OUTPUT.PUT_LINE('Nom:' || l_client.nom);
+ 37  	     DBMS_OUTPUT.PUT_LINE('Telephone:' || l_client.telephone);
+ 38  	     DBMS_OUTPUT.PUT_LINE('Adresse:' || l_client.noCivique || ' ' || l_client.rue
+ 39  		     || ' ' || l_client.ville || ', ' || l_client.codePostal|| ', ' || l_client.pays);
+ 40  
+ 41  
+ 42  	     OPEN cur_produits_commandee;
+ 43  	     LOOP
+ 44  		     FETCH cur_produits_commandee INTO l_num_produit;
+ 45  		     EXIT WHEN cur_produits_commandee%NOTFOUND;
+ 46  
+ 47  		     SELECT codeZebre
+ 48  		     INTO    l_code_zebre
+ 49  		     FROM   Produit
+ 50  		     WHERE  Produit.noProduit = :l_num_produit;
+ 51  
+ 52  		     SELECT description
+ 53  		     INTO    l_desc_prod
+ 54  		     FROM    TypeProduit
+ 55  		     WHERE  Produit.noProduit = :l_num_produit;
+ 56  
+ 57  		     SELECT quantite
+ 58  		     INTO   l_qte_a_livrer;
+ 59  		     FROM    Commande
+ 60  		     WHERE  Produit.noProduit = :l_num_produit;
+ 61  
+ 62  		     DBMS_OUTPUT.PUT_LINE('NoProduit | CodeZebre | description | quantite');
+ 63  		     DBMS_OUTPUT.PUT_LINE('==============================================');
+ 64  		     DBMS_OUTPUT.PUT_LINE(l_num_produit || l_code_zebre || l_desc_prod || l_qte_a_livrer);
+ 65  
+ 66  	     END LOOP;
+ 67  	     CLOSE cur_produits_commandee;
+ 68  END;
+ 69  /
+
+Warning: Procedure created with compilation errors.
+
 SQL> exit
