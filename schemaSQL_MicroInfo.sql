@@ -119,7 +119,6 @@ CREATE TABLE LigneLivraison
  noProduit          NUMBER(19)         NOT NULL,
  noCommande         NUMBER(19)         NOT NULL,
  quantiteLivree     NUMBER(19)         NOT NULL,
- PRIMARY KEY (noLivraison),
  FOREIGN KEY (noLivraison) REFERENCES Livraison,
  FOREIGN KEY (noProduit)   REFERENCES TypeProduit,
  FOREIGN KEY (noCommande)  REFERENCES Commande
@@ -211,7 +210,7 @@ BEGIN
 END;
 /
 --
--- DECLENCHEUR: TRG_bloquerInsertionCommande
+-- DECLENCHEUR: TRG_bloquerInsertionLivraison
 -- TABLE: LigneLivraison
 -- TYPE: Après requête d'insertion
 -- DESCRIPTION:
@@ -219,6 +218,38 @@ END;
 -- commandée de la commande concernée
 --
 CREATE OR REPLACE TRIGGER TRG_bloquerInsertionCommande
+BEFORE INSERT
+        ON LigneLivraison
+REFERENCING
+        NEW AS NouvelleLivraison
+FOR EACH ROW
+        DECLARE
+                qteLivree       NUMBER(19);
+                qteCommandee    NUMBER(19);
+BEGIN
+        SELECT  SUM(quantiteLivree)
+        INTO    qteLivree
+        FROM    LigneLivraison
+        WHERE   LigneLivraison.noProduit = :NouvelleLivraison.noProduit;
+
+        SELECT  quantite
+        INTO    qteCommandee
+        FROM    LigneCommande
+        WHERE   LigneCommande.noProduit = :NouvelleLivraison.noProduit;
+
+        IF :NouvelleLivraison.quantiteLivree + qteLivree > qteCommandee THEN
+                raise_application_error(-20100, 'La quantite a livrer est trop elevee');
+        END IF;
+END;
+/
+-- DECLENCHEUR: TRG_bloquerInsertionLivraison
+-- TABLE: LigneLivraison
+-- TYPE: Après requête d'insertion
+-- DESCRIPTION:
+-- Bloque l'insertion d'une livraison d'un article lorsque la quantité totale livrée dépasse la quantité
+-- commandée de la commande concernée
+--
+CREATE OR REPLACE TRIGGER TRG_bloquerInsertionLivraison
 BEFORE INSERT
         ON LigneLivraison
 REFERENCING
