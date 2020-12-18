@@ -2,9 +2,9 @@
 --@Auteur: Jeffrey Robillard
 --Code Permanent: ROBJ20039301
 --@Auteur: Angélie Ménard
---Code Permanent:
+--Code Permanent: MENA16569906
 --Date de création: 2020-12-23
---Description: MENA16569906
+--Description: 
 --Script de Supression des Tables
 -- ===========================================
 
@@ -26,6 +26,7 @@ CREATE OR REPLACE FUNCTION fQteDejaLivree
 (unNoProduit LigneLivraison.noProduit%TYPE, unNoCommande LigneLivraison.noCommande%TYPE)
 RETURN  LigneLivraison.quantiteLivree%TYPE IS 
 
+-- Déclaration des quantités déjà livré pour la livraison
     quantiteDejalivree LigneLivraison.quantiteLivree%TYPE;
 BEGIN 
    SELECT   SUM(quantiteLivree)
@@ -47,6 +48,7 @@ CREATE OR REPLACE FUNCTION fTotalFacture
 (unNoLivraison Facture.noLivraison%TYPE)
 RETURN Facture.montantSousTotal%TYPE IS
 
+-- Déclaration du montant total de la facture
     MontTotalFacture Facture.montantSousTotal%TYPE;
 BEGIN
     SELECT  SUM(montantSousTotal + montantTaxes)
