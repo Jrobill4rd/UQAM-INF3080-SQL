@@ -142,16 +142,16 @@ BEGIN
         --Select pour obtenir le dernier numéro de livraison.
         SELECT MAX(noLivraison)
         INTO   num_Livraison
-        FROM   Livraison
+        FROM   Livraison;
 
         --Incrément du numéro de livraison
-        num_Livraison:= num_Livraison + 1
+        num_Livraison:= num_Livraison + 1;
 
          --Création de la livraison.
         INSERT INTO Livraison VALUES(num_Livraison,l_num_client,date_livraison);
 END;
 /
-
+SHOW ERRORS
 
 --
 --
@@ -161,7 +161,7 @@ END;
 --
 --
 CREATE OR REPLACE PROCEDURE p_PreparerFacture
-        (num_Livraison Livraison.noLivraison%TYPE, date_limite_paiement Facture.dateLimitePaiement%TYPE) IS
+        (num_Livraison Livraison.noLivraison%TYPE, date_limite_paiement Facture.dateLimitePaiment%TYPE) IS
 
         --Déclaration de variables des informations client
         l_num_client            Commande.noClient%TYPE;
@@ -188,7 +188,7 @@ CREATE OR REPLACE PROCEDURE p_PreparerFacture
 BEGIN
         SELECT  noClient
 	INTO	l_num_client
-        FROM    Commande
+        FROM    Livraison
         WHERE   Livraison.noLivraison = num_Livraison;
         
         --Select des informations du client.
@@ -220,7 +220,7 @@ BEGIN
                 WHERE   TypeProduit.noProduit = l_num_produit;
 
                 SELECT quantite
-                INTO   l_qte_a_livrer
+                INTO   l_qte_commande
                 FROM    LigneCommande
                 WHERE  LigneCommande.noProduit = l_num_produit;
                
@@ -230,9 +230,9 @@ BEGIN
                 FROM    ProduitPrix
                 WHERE   ProduitPrix.noProduit = l_num_produit;
 
-                l_prix_total_prod := l_qte_a_livrer * l_prix_uni_prod;
+                l_prix_total_prod := l_qte_commande * l_prix_uni_prod;
 
-                DBMS_OUTPUT.PUT_LINE(l_num_produit || l_desc_prod || l_qte_a_livrer || l_prix_uni_prod || l_prix_total_prod);
+                DBMS_OUTPUT.PUT_LINE(l_num_produit || l_desc_prod || l_qte_commande || l_prix_uni_prod || l_prix_total_prod);
 
                 mont_sous_total := mont_sous_total + l_prix_total_prod;
         END LOOP;
@@ -248,3 +248,4 @@ BEGIN
         CLOSE cur_produits_commandee;
 END;
 /
+SHOW ERRORS
