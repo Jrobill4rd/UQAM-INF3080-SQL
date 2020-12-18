@@ -1,8 +1,18 @@
+--===========================================
+--@Auteur: Jeffrey Robillard
+--Code Permanent: ROBJ20039301
+--@Auteur: Angélie Ménard
+--Code Permanent:
+--Date de création: 2020-12-23
+--Description: MENA16569906
+--Script de Supression des Tables
+-- ===========================================
 SET ECHO ON
--- Script Oracle SQL*plus de creation du schema Micro-Info
--- Version sans accents
 
+--==============================
 -- Suppression des tables
+--==============================
+
 SET ECHO ON
 DROP TABLE usager CASCADE CONSTRAINTS;
 DROP TABLE Fournisseur CASCADE CONSTRAINTS;
