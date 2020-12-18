@@ -147,11 +147,7 @@ BEGIN
         FROM   Livraison;
 
         --Incrément du numéro de livraison
-        IF num_Livraison == %NOTFOUND THEN
-                num_Livraison == 0000000000000000001
-        ELSE
-                num_Livraison:= num_Livraison + 1;
-        ENDIF;
+          num_Livraison:= num_Livraison + 1;
          --Création de la livraison.
         INSERT INTO Livraison VALUES(num_Livraison,l_num_client,date_livraison);
 END;
