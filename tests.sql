@@ -1,101 +1,143 @@
+--===========================================
+--@Auteur: Jeffrey Robillard
+--Code Permanent: ROBJ20039301
+--@Auteur: Angélie Ménard
+--Code Permanent: MENA16569906
+--Date de création: 2020-12-23
+--Description:
+--Script de Tests de la BD
+--===========================================
+
 SET SERVEROUTPUT ON
 
--- test check type usager
-/* TEST QUI FONCTIONNE == VRAI */
-/* Creation d'un usager */
 
+--============================
+-- TEST Check Type Usager
+--============================
+
+---------------------[VALIDE]-----------------------
+--Création d'un usager
 INSERT INTO Usager VALUES (001, 'INF3080', 'Client');
 
-/* TEST QUI NE FONCTIONNE PAS == FAUX */
-/* Creation d'un usager */
-
+---------------------[NON-VALIDE]-----------------------
+--Création d'un usager
 INSERT INTO Usager VALUES (002, 'Banane3', 'Rongeur');
 
--- test type de commande "status"
-/* TEST QUI FONCTIONNE == VRAI */
-/* Creation d'une commande */
 
-INSERT INTO Client VALUES (01,001, 'John', 'Doe', '0-000-0000', 'Sociable', 000, 'des oiseaux', 'Montreal', 'Canada', 'H0H0H0');
+--================================
+-- TEST Check Type statusCommande
+--================================
 
-INSERT INTO Commande VALUES(0001, 01, '2020-12-06', 'Payee');
+---------------------[VALIDE]-----------------------
+--Création d'un Client
+INSERT INTO Client VALUES (0000000000000000001,0000000000000000001, 'John', 'Doe', '0-000-0000', 'Sociable', 000, 'des oiseaux', 'Montreal', 'Canada', 'H0H0H0');
+--Création d'une commande
+INSERT INTO Commande VALUES(0000000000000000001, 0000000000000000001, '2020-12-06', 'Payee');
 
-/* TEST QUI NE FONCTIONNE PAS == FAUX */
-/* Creation d'une commande */
+---------------------[NON-VALIDE]-----------------------
+--Création d'un usager
+INSERT INTO Usager VALUES (0000000000000000002, 'Banane3', 'Client');
+--Création d'un Client
+INSERT INTO Client VALUES (0000000000000000002,0000000000000000002, 'John', 'Doe', '0-000-0000', 'Sociable', 000, 'des oiseaux', 'Montreal', 'Canada', 'H0H0H0');
+--Création d'une commande
+INSERT INTO Commande VALUES(0000000000000000002, 0000000000000000002, '2020-12-06', 'Au depanneur');
 
-INSERT INTO Usager VALUES (002, 'Banane3', 'Client');
+--================================
+-- TEST Check quantitee commandee
+--================================
 
-INSERT INTO Client VALUES (02,002, 'John', 'Doe', '0-000-0000', 'Sociable', 000, 'des oiseaux', 'Montreal', 'Canada', 'H0H0H0');
+---------------------[VALIDE]-----------------------
+--Création d'un produit
+INSERT INTO Produit VALUES (0000000000000000001,'000000000001');
+--Création d'un LigneCommande
+INSERT INTO LigneCommande VALUES(0000000000000000001, 0000000000000000001, 12);
 
-INSERT INTO Commande VALUES(0002, 02, '2020-12-06', 'Au depanneur');
+---------------------[NON-VALIDE]-----------------------
+--Création d'un produit
+INSERT INTO Produit VALUES (0000000000000000002,'000000000002');
+--Création d'une commande
+INSERT INTO Commande VALUES (0000000000000000002, 0000000000000000002, '2020-12-16', 'Payee');
+--Création d'une LigneCommande
+INSERT INTO LigneCommande VALUES (0000000000000000002, 0000000000000000002, -1);
 
--- test check quantitee commandee
-/* TEST QUI FONCTIONNE == VRAI */
-/* Creation d'une ligne de commande */
+--================================
+-- TEST Check Mode de Paiement
+--================================
 
-INSERT INTO Produit VALUES (01,'000000000001');
-
-INSERT INTO LigneCommande VALUES(0001, 01, 12);
-
-/* TEST QUI NE FONCTIONNE PAS == FAUX */
-/* Creation d'une ligne de commande */
-
-INSERT INTO Produit VALUES (02,'000000000002');
-
-INSERT INTO Commande VALUES (0002, 02, '2020-12-16', 'Payee');
-
-INSERT INTO LigneCommande VALUES (0002, 02, -1);
-
--- test check type de carte de credit
-/* TEST QUI FONCTIONNE == VRAI */
-/* Creation d'un paiement par carte */
-
-INSERT INTO Livraison VALUES (0001, 01, '2021-01-01');
-
-INSERT INTO Paiement VALUES (0001, 0001, '2020-12-16', 2000 );
-
+---------------------[VALIDE]-----------------------
+--Création d'une Livraison.
+INSERT INTO Livraison VALUES (0000000000000000001, 01, '2021-01-01');
+--Création d'un paiement
+INSERT INTO Paiement VALUES (0000000000000000001, 0000000000000000001, '2020-12-16', 2000 );
+--Création d'un paiement par carte de crédit
 INSERT INTO PaiementCarteCredit VALUES (0001, '0000 0000 0000' , 'Visa', '2025-01-01');
 
-/* TEST QUI NE FONCTIONNE PAS == FAUX */
-/* Creation d'un paiement par carte */
+---------------------[NON-VALIDE]-----------------------
+--Création d'une Livraison.
+INSERT INTO Livraison VALUES (0000000000000000002,0000000000000000002, '2021-01-01');
+--Création d'un paiement
+INSERT INTO Paiement VALUES (0000000000000000002,0000000000000000002, '2020-12-16', 2000 );
+--Création d'un paiement par carte de crédit
+INSERT INTO PaiementCarteCredit VALUES (0000000000000000002, '0000 0000 0000' , 'Capital One', '2021-05-16');
 
-INSERT INTO Livraison VALUES (0002, 02, '2021-01-01');
+--================================
+-- TEST Trigger AjusterQteEnStock
+--================================
 
-INSERT INTO Paiement VALUES (0002, 0002, '2020-12-16', 2000 );
+--Création d'un type de produit
+INSERT INTO TypeProduit VALUES (0000000000000000001, 'Disque Dur', 20, 50);
+--Vérification de la quantité avant la trigger
+SELECT quantiteEnStock
+FROM TypeProduit;
+--Création d'une LigneLivraison
+INSERT INTO LigneLivraison VALUES (0000000000000000001, 0000000000000000001, 0000000000000000001, 15);
 
-INSERT INTO PaiementCarteCredit VALUES (0002, '0000 0000 0000' , 'Capital One', '2021-05-16');
-
--- test trigger quantite en stock
-/* TEST QUE LE TRIGGER FONCTIONNE == VRAI */
-
-INSERT INTO TypeProduit VALUES (01, 'Disque Dur', 20, 50);
-
+--Vérification de la quantité après la livraison.
 SELECT quantiteEnStock
 FROM TypeProduit;
 
-INSERT INTO LigneLivraison VALUES (0001, 01, 0001, 15);
-
+--=====================================
+-- TEST Trigger TRG_bloquerInsertionLivraison
+--=====================================
 SELECT quantiteEnStock
 FROM TypeProduit;
+INSERT INTO LigneLivraison VALUES (0000000000000000002, 0000000000000000001, 0000000000000000002, 55)
 
--- test trigger bloquer la livraison dun article > que la quantite en stock
-/* TEST QUI FONCTIONNE == VRAI */
+--=====================================
+-- TEST Trigger TRG_bloquerInsertionCommande
+--=====================================
+--Création d'un produit
+INSERT INTO Produit VALUES (0000000000000000003,'000000000002');
+--Création d'une commande
+INSERT INTO TypeProduit VALUES (0000000000000000003, 'LAPTOP', 20, 50);
+INSERT INTO Commande VALUES (0000000000000000003, 0000000000000000002, '2020-12-16', 'Payee');
+--Création d'une LigneCommande
+INSERT INTO LigneCommande VALUES (0000000000000000003, 0000000000000000003, 55);
 
-INSERT INTO LigneLivraison VALUES (0002, 01, 0002, 55)
-
--- test trigger bloquer la livraison article > ce qui est deja livree
-/* TEST QUI FONCTIONNE == VRAI */
-
-
-
--- test trigger paiement total
-/* TEST QUI FONCTIONNE == VRAI */
-
-
-
--- test fonction quantite deja livree
-/* TEST QUI FONCTIONNE == VRAI */
+--=====================================
+-- TEST Trigger TRG_bloquerPaiement
+--=====================================
 
 
 
--- test total facture
-/* TEST QUI FONCTIONNE == VRAI */
+--=====================================
+-- TEST Fonction fQteDejaLivree
+--=====================================
+
+
+
+--=====================================
+-- TEST Fonction fTotalFacture
+--=====================================
+
+
+
+
+--=====================================
+-- TEST Procedure p_PreparerLivraison
+--=====================================
+
+
+--=====================================
+-- TEST Procedure p_PreparerFacturen
+--=====================================

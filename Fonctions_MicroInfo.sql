@@ -1,27 +1,27 @@
---
---
---
---
---
---
+--===========================================
+--@Auteur: Jeffrey Robillard
+--Code Permanent: ROBJ20039301
+--@Auteur: Angélie Ménard
+--Code Permanent:
+--Date de création: 2020-12-23
+--Description: MENA16569906
+--Script de Supression des Tables
+-- ===========================================
 
 SET ECHO ON
--- Script Oracle SQL*plus de creation des fonctions.
-
------------------------------------------------------------------------
--- Creation des fonctions
------------------------------------------------------------------------
+--===========================================
+--Creation des fonctions
+--===========================================
 SET ECHO ON
 
---
---
---
---
---
---
---
---
---
+--===============================================
+--Fonction: fTotalFacture
+--Description:
+--Calculer la quantitée déja livrée
+--IN (Entier): Un numéro de Livraison
+--IN (Entier): Un numéro de Commande
+--OUT (FLOAT): La quantité déja livré d'un produit
+--=================================================
 CREATE OR REPLACE FUNCTION fQteDejaLivree
 (unNoProduit LigneLivraison.noProduit%TYPE, unNoCommande LigneLivraison.noCommande%TYPE)
 RETURN  LigneLivraison.quantiteLivree%TYPE IS 
@@ -35,14 +35,14 @@ BEGIN
    RETURN   quantiteDejalivree;
 END fQteDejaLivree;
 /
-
---
---
---
---
---
---
---
+SHOW ERRORS
+--===============================================
+--Fonction: fTotalFacture
+--Description:
+--Calculer le total d'une Facture
+--IN (Entier): Un numéro de Livraison
+--OUT (FLOAT): Le total d'une facture 
+--===============================================
 CREATE OR REPLACE FUNCTION fTotalFacture
 (unNoLivraison Facture.noLivraison%TYPE)
 RETURN Facture.montantSousTotal%TYPE IS
@@ -56,18 +56,20 @@ BEGIN
     RETURN  MontTotalFacture;
 END fTotalFacture;
 /
----------------------------------------------------------------------
------------------Création des Procédures-----------------------------
----------------------------------------------------------------------
+SHOW ERRORS
+--==============================
+-- Création des Procedures
+--==============================
 
---
---
---
---
---
---
---
---
+--=================================================================
+--Procédure: p_PreparerLivraison
+--Description:
+--Afficher un Bond de Livraison détaillé
+--Créer une Ligne dans la table Livraison
+--IN (Entier): Un numéro de Commande. 
+--IN (Date)  : Une date limite de Livraison choisi par l'Utilisateur.
+--===================================================================
+
 CREATE OR REPLACE PROCEDURE p_PreparerLivraison
         (numCommande Commande.noCommande%TYPE, date_livraison Livraison.dateLivraison%TYPE) IS
 
@@ -145,21 +147,24 @@ BEGIN
         FROM   Livraison;
 
         --Incrément du numéro de livraison
-        num_Livraison:= num_Livraison + 1;
-
+        IF num_Livraison == %NOTFOUND THEN
+                num_Livraison == 0000000000000000001
+        ELSE
+                num_Livraison:= num_Livraison + 1;
+        ENDIF;
          --Création de la livraison.
         INSERT INTO Livraison VALUES(num_Livraison,l_num_client,date_livraison);
 END;
 /
 SHOW ERRORS
-
---
---
---
---
---
---
---
+--=================================================================
+--Procédure: p_PreparerFacture
+--Description:
+--Afficher une Facture détaillé
+--Créer une Ligne dans la table Facture
+--IN (Entier): Un numéro de Livraison. 
+--IN (Date)  : Une date limite de Paiement choisi par l'Utilisateur.
+--===================================================================
 CREATE OR REPLACE PROCEDURE p_PreparerFacture
         (num_Livraison Livraison.noLivraison%TYPE, date_limite_paiement Facture.dateLimitePaiment%TYPE) IS
 
