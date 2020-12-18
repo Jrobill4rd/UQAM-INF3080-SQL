@@ -107,15 +107,17 @@ INSERT INTO LigneCommande VALUES (2,1,10);
 INSERT INTO LigneLivraison VALUES (2, 1, 2, 55);
 
 --=====================================
--- TEST Trigger TRG_bloquerInsertionCommande
+-- TEST Trigger TRG_bloquerInsertionLivraison
 --=====================================
 --Création d'un produit
 INSERT INTO Produit VALUES (3,'000000000002');
 --Création d'une commande
 INSERT INTO TypeProduit VALUES (3, 'LAPTOP', 20, 50);
 INSERT INTO Commande VALUES (3, 2, '2020-12-16', 'Payee');
+-- Ajout d'une livraison
+INSERT INTO Livraison VALUES (3, 1, '2020-12-18');
 --Création d'une LigneCommande
-INSERT INTO LigneCommande VALUES (3, 3, 55);
+INSERT INTO LigneLivraison VALUES (3, 3, 3, 55);
 
 --=====================================
 -- TEST Trigger TRG_bloquerPaiement
@@ -137,9 +139,9 @@ INSERT INTO Paiement VALUES (4, 4, '2020-12-20', 1500);
 -- TEST Fonction fQteDejaLivree
 --=====================================
 -- Création des produit
-INSERT INTO Produit VALUES (4, '0000000000000000004');
-INSERT INTO Produit VALUES (5, '0000000000000000005');
-INSERT INTO Produit VALUES (6, '0000000000000000006');
+INSERT INTO Produit VALUES (4, '00000000004');
+INSERT INTO Produit VALUES (5, '00000000005');
+INSERT INTO Produit VALUES (6, '00000000006');
 
 INSERT INTO TypeProduit VALUES (4, 'Tour ordinateur', 5, 70);
 INSERT INTO ProduitPrix VALUES (4, '2020-01-01', 300);
@@ -150,11 +152,11 @@ INSERT INTO ProduitPrix VALUES (5, '2020-01-01', 100);
 INSERT INTO TypeProduit VALUES (6, 'Cable alimentation', 5, 75);
 INSERT INTO ProduitPrix VALUES (6, '2020-01-01', 10);
 -- Créer une commande avec le client 4
-INSERT INTO Commande VALUES (5, 4, '2020-11-11', 'Payee');
+INSERT INTO Commande VALUES (4, 4, '2020-11-11', 'Payee');
 -- Créer plusieurs lignes de commandes avec différents produits
-INSERT INTO LigneCommande VALUES (5, 4, 10);
-INSERT INTO LigneCommande VALUES (5, 5, 12);
-INSERT INTO LigneCommande VALUES (5, 6, 8);
+INSERT INTO LigneCommande VALUES (4, 4, 10);
+INSERT INTO LigneCommande VALUES (4, 5, 12);
+INSERT INTO LigneCommande VALUES (4, 6, 8);
 -- Créer une livraison
 INSERT INTO Livraison VALUES (5, 4, '2020-12-15');
 -- Créer plusieurs lignes de livraisons avec les produits commandés
@@ -163,6 +165,7 @@ INSERT INTO LigneLivraison VALUES (5, 5, 5, 12);
 INSERT INTO LigneLivraison VALUES (5, 6, 5, 4);
 -- Appeler la fonction avec le numéro de produit 4 et la commande 5
 SELECT fQteDejaLivree(4, 5) FROM dual;
+
 
 --=====================================
 -- TEST Fonction fTotalFacture
