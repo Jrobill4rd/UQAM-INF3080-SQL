@@ -116,32 +116,45 @@ BEGIN
 END;
 
 
--- penser que je peux utiliser le curseur avec une loop
-CREATE OR REPLACE PROCEDURE p_PreparerLivraison
-        (numCommande NUMBER(19)) IS
-        ---Déclaration de variables
-        num_client Commande.noClient%TYPE;
-        prenom_client Client.prenom%TYPE;
-        nom_client Client.nom%TYPE;
-        tel_client Client.telephone%TYPE;
-        adr_client Client.noCivique%TYPE;
-        rue_client Client.rue%TYPE;
-        ville_client Client.ville%TYPE;
-        pays_client Client.pays%TYPE;
-        codepostal_client Client.codePostal%TYPE;
-        descript_produit TypeProduit.description%TYPE;
-        code_zebre Produit.codeZebre%TYPE;
 
-        qte_a_livrer Commande.quantite%TYPE; --la quantité à livrer
+CREATE OR REPLACE PROCEDURE p_PreparerLivraison
+        (numCommande Commande.noCommande%TYPE) IS
+
+        ---Déclaration de variables des informations client
+        l_num_client Commande.noClient%TYPE;
+        l_client Client%ROWTYPE;
+        l_codepostal_client Client.codePostal%TYPE;
+        --Déclaration de variables des informations pour chaque produit
+        l_num_produit     TypeProduit.noProduit%TYPE; -- le numéro de produit
+        l_desc_prod TypeProduit.description%TYPE; --la description du produit
+        l_code_zebre Produit.codeZebre%TYPE; -- le code zebre du produit
+        l_qte_a_livrer Commande.quantite%TYPE; --la quantité à livrer
+
         num_Livraison Livraison.noLivraison%TYPE; --le numéro de livraison de la commande
 
         --Déclaration d'un curseur sur les produits de la commande.
         CURSOR cur_produits_commandee IS
-                SELECT noProduit, quantite,
+                SELECT noProduit
                 FROM   LigneCommande
                 WHERE  LigneCommande.noCommande = numCommande;
 
 BEGIN
         DBMS_OUTPUT.PUT_LINE('Numéro de commande:' || numCommande)
+        SELECT  noClient
+        FROM    Commande
+        INTO    l_num_client
+        WHERE   Commande.noCommande = numCommande;
+
+        SELECT prenom,nom, telephone,qualite,noCivique, rue, ville, pays, codePostal
+        FROM   Client
+        INTO   l_client.prenom, l_client.nom, l_client.telephone, l_client.qualite,l_client.noCivique
+                l_client.rue, l_client.ville, l_client.pays, l_client.codePostal
+        WHERE   Client.noClient = l_num_client;
+        DBMS_OUTPUT.PUT_LINE('NoClient:' || l_num_client);
+        DBMS_OUTPUT.PUT_LINE('Prenom:' || l_client.prenom);
+        DBMS_OUTPUT.PUT_LINE('Nom:' || l_client.nom);
+        DBMS_OUTPUT.PUT_LINE('Telephone:' || l_client.telephone);
+        DBMS_OUTPUT.PUT_LINE('Adresse:' || l_client.noCivique || ' ' || l_client.rue || ' ' || l_client.ville || ', ' || l_client.codePostal|| ', ' || l_client.pays);
+        
 END;
 /
