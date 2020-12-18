@@ -118,7 +118,7 @@ END;
 
 
 CREATE OR REPLACE PROCEDURE p_PreparerLivraison
-        (numCommande Commande.noCommande%TYPE) IS
+        (numCommande Commande.noCommande%TYPE, date_livraison Livraison.dateLivraison%TYPE) IS
 
         ---Déclaration de variables des informations client
         l_num_client Commande.noClient%TYPE;
@@ -136,14 +136,14 @@ CREATE OR REPLACE PROCEDURE p_PreparerLivraison
         CURSOR cur_produits_commandee IS
                 SELECT noProduit
                 FROM   LigneCommande
-                WHERE  LigneCommande.noCommande = numCommande;
+                WHERE  LigneCommande.noCommande = :numCommande;
 
 BEGIN
         DBMS_OUTPUT.PUT_LINE('Numéro de commande:' || numCommande)
         SELECT  noClient
         FROM    Commande
         INTO    l_num_client
-        WHERE   Commande.noCommande = numCommande;
+        WHERE   Commande.noCommande = :numCommande;
 
         SELECT prenom,nom, telephone,qualite,noCivique, rue, ville, pays, codePostal
         FROM   Client
@@ -154,7 +154,30 @@ BEGIN
         DBMS_OUTPUT.PUT_LINE('Prenom:' || l_client.prenom);
         DBMS_OUTPUT.PUT_LINE('Nom:' || l_client.nom);
         DBMS_OUTPUT.PUT_LINE('Telephone:' || l_client.telephone);
-        DBMS_OUTPUT.PUT_LINE('Adresse:' || l_client.noCivique || ' ' || l_client.rue || ' ' || l_client.ville || ', ' || l_client.codePostal|| ', ' || l_client.pays);
+        DBMS_OUTPUT.PUT_LINE('Adresse:' || l_client.noCivique || ' ' || l_client.rue 
+                || ' ' || l_client.ville || ', ' || l_client.codePostal|| ', ' || l_client.pays);
         
+
+        OPEN cur_produits_commandee;
+        LOOP
+                FETCH cur_produits_commandee INTO l_num_produit;
+                EXIT WHEN cur_produits_commandee%NOTFOUND;
+
+                SELECT codeZebre
+                INTO    l_code_zebre
+                FROM   Produit
+                WHERE  Produit.noProduit = :l_num_produit;
+
+                SELECT description
+                INTO    l_desc_prod
+                FROM    TypeProduit
+                WHERE  Produit.noProduit = :l_num_produit;
+
+                SELECT des
+
+
+
+        END LOOP;
+        CLOSE cur_produits_commandee;
 END;
 /

@@ -59,7 +59,7 @@ CREATE TABLE Client
 /
 CREATE TABLE TypeProduit
 (noProduit                      NUMBER(19)              NOT NULL        ,
- description            VARCHAR(250)    NOT NULL,
+ description                       VARCHAR(250)           NOT NULL,
  minimumEnStock         NUMBER(19)      NOT NULL,
  quantiteEnStock        NUMBER(19)      NOT NULL,
  PRIMARY KEY (noProduit),
@@ -78,7 +78,7 @@ CREATE TABLE ProduitPrix
 CREATE TABLE Commande
 (noCommande             NUMBER(19)              NOT NULL,
  noClient               NUMBER(19)              NOT NULL,
- dateCommande   DATE            NOT NULL,
+ dateCommande           DATE                    NOT NULL,
  typeStatusCommande VARCHAR(15)
  CHECK(typeStatusCommande IN ('Annulee','Livree','Payee','En Attente')),
  PRIMARY KEY (noCommande),
@@ -97,16 +97,17 @@ CREATE TABLE LigneCommande
 /
 CREATE TABLE Livraison
 (noLivraison            NUMBER(19)              NOT NULL,
- noClient                       NUMBER(19)              NOT NULL,
+ noClient                       NUMBER(19)      NOT NULL,
  dateLivraison          DATE                    NOT NULL,
  PRIMARY KEY (noLivraison),
  FOREIGN KEY (noClient) REFERENCES Client
+ FOREIGN KEY (noCommande) REFERENCES Commande
 )
 /
 CREATE TABLE LigneLivraison
-(noLivraison            NUMBER(19)              NOT NULL,
- noProduit                      NUMBER(19)              NOT NULL,
- noCommande                     NUMBER(19)              NOT NULL,
+(noLivraison        NUMBER(19)      NOT NULL,
+ noProduit          NUMBER(19)      NOT NULL,
+ noCommande         NUMBER(19)      NOT NULL,
  quantiteLivree     NUMBER(19)      NOT NULL,
  PRIMARY KEY (noLivraison),
  FOREIGN KEY (noLivraison) REFERENCES Livraison,
@@ -119,7 +120,7 @@ CREATE TABLE Facture
 (noLivraison            NUMBER(19)              NOT NULL,
  montantSousTotal       NUMBER(19,4)    NOT NULL,
  montantTaxes           NUMBER(19,4)    NOT NULL,
- dateLimitePaiment  DATE            NOT NULL,
+ dateLimitePaiment      DATE            NOT NULL,
  PRIMARY KEY (noLivraison),
  FOREIGN KEY (noLivraison) REFERENCES Livraison
  )
