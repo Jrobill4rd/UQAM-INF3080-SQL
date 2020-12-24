@@ -32,7 +32,7 @@ BEGIN
    SELECT   SUM(quantiteLivree)
    INTO     quantiteDejalivree
    FROM     LigneLivraison
-   WHERE    noProduit = unNoProduit AND noCommande = unNoCommande;
+   WHERE    noProduit = unNoProduit OR  noCommande = unNoCommande;
    RETURN   quantiteDejalivree;
 END fQteDejaLivree;
 /
@@ -107,7 +107,7 @@ BEGIN
         WHERE   Client.noClient = l_num_client;
 
         --Affichage du bon de livraison.
-        DBMS_OUTPUT.PUT_LINE('Numéro de commande:' || numCommande);
+        DBMS_OUTPUT.PUT_LINE('Numero de commande:' || numCommande);
         DBMS_OUTPUT.PUT_LINE('NoClient:' || l_num_client);
         DBMS_OUTPUT.PUT_LINE('Prenom:' || l_client.prenom);
         DBMS_OUTPUT.PUT_LINE('Nom:' || l_client.nom);
@@ -115,7 +115,7 @@ BEGIN
         DBMS_OUTPUT.PUT_LINE('Adresse:' || l_client.noCivique || ' ' || l_client.rue 
                         || ' ' || l_client.ville || ', ' || l_client.codePostal|| ', ' || l_client.pays);
         
-        DBMS_OUTPUT.PUT_LINE('NoProduit | CodeZebre | description | quantite');
+        DBMS_OUTPUT.PUT_LINE('NoProduit||CodeZebre||description||quantite');
         DBMS_OUTPUT.PUT_LINE('==============================================');
         OPEN cur_produits_commandee;
         --Boucle sur les produits de la commande.
@@ -138,7 +138,7 @@ BEGIN
                 FROM    LigneCommande
                 WHERE  LigneCommande.noProduit = l_num_produit;
 
-                DBMS_OUTPUT.PUT_LINE(l_num_produit || l_code_zebre || l_desc_prod || l_qte_a_livrer);
+                DBMS_OUTPUT.PUT_LINE(l_num_produit || '||' ||  l_code_zebre ||'||'|| l_desc_prod || '||'|| l_qte_a_livrer);
 
         END LOOP;
         CLOSE cur_produits_commandee;
@@ -156,14 +156,14 @@ END;
 /
 SHOW ERRORS
 --=================================================================
---Procédure: p_PreparerFacture
+--Procédure: p_ProduireFacture
 --Description:
 --Afficher une Facture détaillé
 --Créer une Ligne dans la table Facture
 --IN (Entier): Un numéro de Livraison. 
 --IN (Date)  : Une date limite de Paiement choisi par l'Utilisateur.
 --===================================================================
-CREATE OR REPLACE PROCEDURE p_PreparerFacture
+CREATE OR REPLACE PROCEDURE p_ProduireFacture
         (num_Livraison Livraison.noLivraison%TYPE, date_limite_paiement Facture.dateLimitePaiment%TYPE) IS
 
         --Déclaration de variables des informations client
@@ -178,7 +178,7 @@ CREATE OR REPLACE PROCEDURE p_PreparerFacture
         l_prix_total_prod ProduitPrix.prix%TYPE;        --le prix de l'article total
 
         --Déclaration des variables des totaux factures.
-        mont_sous_total Facture.montantSousTotal%TYPE;
+        mont_sous_total Facture.montantSousTotal%TYPE := 0;
         mont_taxes      Facture.montantTaxes%TYPE;
         mont_total      Facture.montantSousTotal%TYPE;
 
@@ -209,7 +209,7 @@ BEGIN
         DBMS_OUTPUT.PUT_LINE('Adresse:' || l_client.noCivique || ' ' || l_client.rue 
                 || ' ' || l_client.ville || ', ' || l_client.codePostal|| ', ' || l_client.pays);
         
-        DBMS_OUTPUT.PUT_LINE('NoProduit | description | quantite | Prix Unitaire | Total |');
+        DBMS_OUTPUT.PUT_LINE('NoProduit||description||quantite||Prix Unitaire||Total');
         DBMS_OUTPUT.PUT_LINE('==============================================================');
 
         OPEN cur_produits_commandee;
@@ -235,20 +235,20 @@ BEGIN
 
                 l_prix_total_prod := l_qte_commande * l_prix_uni_prod;
 
-                DBMS_OUTPUT.PUT_LINE(l_num_produit || l_desc_prod || l_qte_commande || l_prix_uni_prod || l_prix_total_prod);
+                DBMS_OUTPUT.PUT_LINE(l_num_produit || '||' || l_desc_prod || '||' || l_qte_commande || '||'|| l_prix_uni_prod ||'$'|| '||' || l_prix_total_prod || '$');
 
                 mont_sous_total := mont_sous_total + l_prix_total_prod;
         END LOOP;
+	CLOSE cur_produits_commandee;
 
         mont_taxes := mont_sous_total * 0.15;
         mont_total := mont_sous_total + mont_taxes;
-        DBMS_OUTPUT.PUT_LINE('Sous-total : ' || mont_sous_total);    
-        DBMS_OUTPUT.PUT_LINE('Taxes :' || mont_taxes );
-        DBMS_OUTPUT.PUT_LINE('Total : ' || mont_total);
+        DBMS_OUTPUT.PUT_LINE('Sous-total : ' || mont_sous_total || '$');    
+        DBMS_OUTPUT.PUT_LINE('Taxes :' || mont_taxes || '$' );
+        DBMS_OUTPUT.PUT_LINE('Total : ' || mont_total || '$');
 
          --Création de la Facture.
         INSERT INTO Facture VALUES(num_Livraison,mont_sous_total,mont_taxes,date_limite_paiement);
-        CLOSE cur_produits_commandee;
 END;
 /
 SHOW ERRORS

@@ -1,0 +1,1088 @@
+SQL> 
+SQL> --===================================
+SQL> -- Creation des tables
+SQL> --===================================
+SQL> 
+SQL> CREATE TABLE Usager
+  2  (noUsager		     NUMBER(19)        NOT NULL,
+  3   motDePasse	     VARCHAR(25)       NOT NULL,
+  4   typeUsager	     VARCHAR(15)
+  5   CHECK(typeUsager IN('Client', 'Fournisseur', 'Commis')),
+  6   PRIMARY KEY    (noUsager)
+  7  )
+  8  /
+
+Table created.
+
+SQL> CREATE TABLE Fournisseur
+  2  (noUsager		     NUMBER(19)        NOT NULL,
+  3   noFournisseur	     NUMBER(19)        NOT NULL,
+  4   telephone 	     CHAR(10)	       NOT NULL,
+  5   raisonSociale	     VARCHAR(50)       NOT NULL,
+  6   noCivique 	     NUMBER(19)        NOT NULL,
+  7   rue		     VARCHAR(50)       NOT NULL,
+  8   ville		     VARCHAR(50)       NOT NULL,
+  9   pays		     VARCHAR(50)       NOT NULL,
+ 10   codePostal	     VARCHAR(6)        NOT NULL,
+ 11   PRIMARY KEY    (noFournisseur),
+ 12   FOREIGN KEY    (noUsager) REFERENCES Usager
+ 13  )
+ 14  /
+
+Table created.
+
+SQL> CREATE TABLE Produit
+  2  (noProduit 	     NUMBER(19)       NOT NULL,
+  3   codeZebre 	     CHAR(12)	      NOT NULL,
+  4   PRIMARY KEY    (noProduit)
+  5  )
+  6  /
+
+Table created.
+
+SQL> CREATE TABLE PrioriteFournisseur
+  2  (noFournisseur	     NUMBER(19)      NOT NULL,
+  3   noProduit 	     NUMBER(19)      NOT NULL,
+  4   priorite		     NUMBER(19)      NOT NULL,
+  5   PRIMARY KEY    (noFournisseur),
+  6   FOREIGN KEY    (noFournisseur) REFERENCES Fournisseur,
+  7   FOREIGN KEY    (noProduit)     REFERENCES Produit
+  8  )
+  9  /
+
+Table created.
+
+SQL> CREATE TABLE Client
+  2  (noClient		 NUMBER(19)	     NOT NULL,
+  3   noUsager		 NUMBER(19)	     NOT NULL,
+  4   prenom		 VARCHAR(50)	     NOT NULL,
+  5   nom		 VARCHAR(50)	     NOT NULL,
+  6   telephone 	 CHAR(10)	     NOT NULL,
+  7   qualite		 VARCHAR(25)	     NOT NULL,
+  8   noCivique 	 NUMBER(19)	     NOT NULL,
+  9   rue		 VARCHAR(50)	     NOT NULL,
+ 10   ville		 VARCHAR(50)	     NOT NULL,
+ 11   pays		 VARCHAR(50)	     NOT NULL,
+ 12   codePostal	 CHAR(6)	     NOT NULL,
+ 13   PRIMARY KEY (noClient),
+ 14   FOREIGN KEY (noUsager) REFERENCES Usager
+ 15  )
+ 16  /
+
+Table created.
+
+SQL> CREATE TABLE TypeProduit
+  2  (noProduit 	     NUMBER(19)      NOT NULL,
+  3   description	     VARCHAR(250)    NOT NULL,
+  4   minimumEnStock	     NUMBER(19)      NOT NULL,
+  5   quantiteEnStock	     NUMBER(19)      NOT NULL,
+  6   PRIMARY KEY (noProduit),
+  7   FOREIGN KEY (noProduit) REFERENCES Produit
+  8  )
+  9  /
+
+Table created.
+
+SQL> 
+SQL> CREATE TABLE ProduitPrix
+  2  (noProduit 	     NUMBER(19)      NOT NULL,
+  3   dateEnVigueur	     DATE	     NOT NULL,
+  4   prix		     NUMBER(19,4)    NOT NULL,
+  5   PRIMARY KEY (noProduit),
+  6   FOREIGN KEY (noProduit) REFERENCES Produit
+  7  )
+  8  /
+
+Table created.
+
+SQL> CREATE TABLE Commande
+  2  (noCommande	     NUMBER(19)     NOT NULL,
+  3   noClient		     NUMBER(19)     NOT NULL,
+  4   dateCommande	     DATE	    NOT NULL,
+  5   typeStatusCommande     VARCHAR(15)
+  6   CHECK(typeStatusCommande IN ('Annulee','Livree','Payee','En Attente')),
+  7   PRIMARY KEY (noCommande),
+  8   FOREIGN KEY (noClient) REFERENCES Client
+  9  )
+ 10  /
+
+Table created.
+
+SQL> CREATE TABLE LigneCommande
+  2  (noCommande	     NUMBER(19)     NOT NULL,
+  3   noProduit 	     NUMBER(19)     NOT NULL,
+  4   quantite		     NUMBER(19)     NOT NULL,
+  5   CHECK (quantite > 0),
+  6   PRIMARY KEY (noCommande, noProduit),
+  7   FOREIGN KEY (noCommande) REFERENCES Commande,
+  8   FOREIGN KEY (noProduit)  REFERENCES Produit
+  9  )
+ 10  /
+
+Table created.
+
+SQL> CREATE TABLE Livraison
+  2  (noLivraison	     NUMBER(19)     NOT NULL,
+  3   noClient		     NUMBER(19)     NOT NULL,
+  4   dateLivraison	     DATE	    NOT NULL,
+  5   PRIMARY KEY (noLivraison),
+  6   FOREIGN KEY (noClient) REFERENCES Client
+  7  )
+  8  /
+
+Table created.
+
+SQL> CREATE TABLE LigneLivraison
+  2  (noLivraison	 NUMBER(19)	    NOT NULL,
+  3   noProduit 	 NUMBER(19)	    NOT NULL,
+  4   noCommande	 NUMBER(19)	    NOT NULL,
+  5   quantiteLivree	 NUMBER(19)	    NOT NULL,
+  6   FOREIGN KEY (noLivraison) REFERENCES Livraison,
+  7   FOREIGN KEY (noProduit)	REFERENCES TypeProduit,
+  8   FOREIGN KEY (noCommande)	REFERENCES Commande
+  9  )
+ 10  /
+
+Table created.
+
+SQL> 
+SQL> CREATE TABLE Facture
+  2  (noLivraison	     NUMBER(19) 	     NOT NULL,
+  3   montantSousTotal	     NUMBER(19,4)    NOT NULL,
+  4   montantTaxes	     NUMBER(19,4)    NOT NULL,
+  5   dateLimitePaiment      DATE	     NOT NULL,
+  6   PRIMARY KEY (noLivraison),
+  7   FOREIGN KEY (noLivraison) REFERENCES Livraison
+  8   )
+  9  /
+
+Table created.
+
+SQL> CREATE TABLE Paiement
+  2  (noLivraison	     NUMBER(19) 	     NOT NULL,
+  3   noPaiement	     NUMBER(19) 	     NOT NULL,
+  4   datePaiement	     DATE		     NOT NULL,
+  5   montant			     FLOAT(4)	     NOT NULL,
+  6   PRIMARY KEY (noPaiement),
+  7   FOREIGN KEY (noLivraison) REFERENCES Livraison
+  8  )
+  9  /
+
+Table created.
+
+SQL> CREATE TABLE PaiementCheque
+  2  ( noPaiement	     NUMBER(19) 	 NOT NULL,
+  3    noBanque 	     NUMBER(19) 	 NOT NULL,
+  4    noCompte 	     NUMBER(19) 	 NOT NULL,
+  5    PRIMARY KEY (noPaiement),
+  6    FOREIGN KEY (noPaiement) REFERENCES Paiement(noPaiement)
+  7  )
+  8  /
+
+Table created.
+
+SQL> CREATE TABLE PaiementCarteCredit
+  2  (noPaiement	     NUMBER(19)      NOT NULL,
+  3   noCarte		     VARCHAR(25)     NOT NULL,
+  4   typeCarteCredit	     VARCHAR(15)
+  5   CHECK (typeCarteCredit IN('Visa','MasterCard','AmericanExpress')),
+  6   dateExpiration	     DATE	     NOT NULL,
+  7   PRIMARY KEY (noPaiement),
+  8   FOREIGN KEY (noPaiement) REFERENCES Paiement(noPaiement)
+  9   )
+ 10   /
+
+Table created.
+
+SQL>  --===================================
+SQL> -- Creation des Triggers
+SQL> --===================================
+SQL> 
+SQL> --
+SQL> -- DECLENCHEUR: TRG_AjusterQteEnStock
+SQL> -- TABLE: LigneLivraison
+SQL> -- TYPE: Après requête d'insertion
+SQL> -- DESCRIPTION:
+SQL> -- Reduit la quantité en stock d'un article en fonction de la quantité livrée.
+SQL> --
+SQL> CREATE TRIGGER TRG_AjusterQteEnStock
+  2  AFTER INSERT ON LigneLivraison
+  3  REFERENCING
+  4  	     NEW AS Achat
+  5  FOR EACH ROW
+  6  BEGIN
+  7  	     UPDATE TypeProduit
+  8  	     SET TypeProduit.quantiteEnStock = TypeProduit.quantiteEnStock - :Achat.quantiteLivree
+  9  	     WHERE TypeProduit.noProduit = :Achat.noProduit;
+ 10  END;
+ 11  /
+
+Trigger created.
+
+SQL> 
+SQL> -- DECLENCHEUR: TRG_bloquerLivraisonCommande
+SQL> -- TABLE: LigneLivraison
+SQL> -- TYPE: Après requête d'insertion
+SQL> -- DESCRIPTION:
+SQL> -- Bloque l'insertion d'une livraison d'un article lorsque la quantité totale livrée dépasse la quantité
+SQL> -- commandée de la commande concernée
+SQL> --
+SQL> CREATE OR REPLACE TRIGGER TRG_bloquerLivraison
+  2  BEFORE INSERT
+  3  	     ON LigneLivraison
+  4  REFERENCING
+  5  	     NEW AS NouvelleLivraison
+  6  FOR EACH ROW
+  7  	     DECLARE
+  8  		     qteCommandee    NUMBER(19);
+  9  		     qteStock	     NUMBER(19);
+ 10  BEGIN
+ 11  	     SELECT  quantiteEnStock
+ 12  	     INTO    qteStock
+ 13  	     FROM    TypeProduit
+ 14  	     WHERE   TypeProduit.noProduit = :NouvelleLivraison.noProduit;
+ 15  
+ 16  	     SELECT  quantite
+ 17  	     INTO    qteCommandee
+ 18  	     FROM    LigneCommande
+ 19  	     WHERE   LigneCommande.noProduit = :NouvelleLivraison.noProduit;
+ 20  
+ 21  	     IF :NouvelleLivraison.quantiteLivree  > qteCommandee THEN
+ 22  		     raise_application_error(-20100, 'La quantite a livrer ne peut pas depasser la quantite commande');
+ 23  	     END IF;
+ 24  	     IF :NouvelleLivraison.quantiteLivree > qteStock THEN
+ 25  		     raise_application_error(-20101, 'La quantite a livrer ne peut pas deasser la quantite en stock');
+ 26  	     END IF;
+ 27  END;
+ 28  /
+
+Trigger created.
+
+SQL> SHOW ERRORS
+No errors.
+SQL> --
+SQL> -- DECLENCHEUR: TRG_bloquerPaiement
+SQL> -- TABLE: Paiement
+SQL> -- TYPE: Après requête d'insertion
+SQL> -- DESCRIPTION:
+SQL> -- Bloquer l'insertion d'un paiement qui dépasse le montant qui reste à payer.
+SQL> CREATE OR REPLACE TRIGGER TRG_bloquerPaiement
+  2  BEFORE INSERT
+  3  	     ON Paiement
+  4  REFERENCING
+  5  	     NEW AS NouveauPaiement
+  6  FOR EACH ROW
+  7  	     DECLARE
+  8  		     totalPaiement NUMBER(19,4);
+  9  		     totalFacture  NUMBER(19,4);
+ 10  BEGIN
+ 11  	     SELECT  SUM(Facture.montantSousTotal + Facture.montantTaxes)
+ 12  	     INTO    totalFacture
+ 13  	     FROM    Facture
+ 14  	     WHERE   Facture.noLivraison = :NouveauPaiement.noLivraison;
+ 15  
+ 16  	     SELECT  SUM(montant)
+ 17  	     INTO    totalPaiement
+ 18  	     FROM    Paiement
+ 19  	     WHERE   Paiement.noLivraison = :NouveauPaiement.noLivraison;
+ 20  
+ 21  	     IF :NouveauPaiement.montant > (totalFacture - totalPaiement) THEN
+ 22  		     raise_application_error(-20300, 'Le montant a payer ne doit pas depasser le montant du');
+ 23  	     END IF;
+ 24  END;
+ 25  /
+
+Trigger created.
+
+SQL> @Fonctions_MicroInfo.sql
+SQL> --===========================================
+SQL> --@Auteur: Jeffrey Robillard
+SQL> --Code Permanent: ROBJ20039301
+SQL> --@Auteur: Angélie Ménard
+SQL> --Code Permanent: MENA16569906
+SQL> --Date de création: 2020-12-23
+SQL> --Description:
+SQL> --Script de Supression des Tables
+SQL> -- ===========================================
+SQL> 
+SQL> SET ECHO ON
+SQL> --===========================================
+SQL> --Creation des fonctions
+SQL> --===========================================
+SQL> SET ECHO ON
+SQL> 
+SQL> --===============================================
+SQL> --Fonction: fTotalFacture
+SQL> --Description:
+SQL> --Calculer la quantitée déja livrée
+SQL> --IN (Entier): Un numéro de Livraison
+SQL> --IN (Entier): Un numéro de Commande
+SQL> --OUT (FLOAT): La quantité déja livré d'un produit
+SQL> --=================================================
+SQL> CREATE OR REPLACE FUNCTION fQteDejaLivree
+  2  (unNoProduit LigneLivraison.noProduit%TYPE, unNoCommande LigneLivraison.noCommande%TYPE)
+  3  RETURN  LigneLivraison.quantiteLivree%TYPE IS
+  4  
+  5  -- Déclaration des quantités déjà livré pour la livraison
+  6  	 quantiteDejalivree LigneLivraison.quantiteLivree%TYPE;
+  7  BEGIN
+  8  	SELECT	 SUM(quantiteLivree)
+  9  	INTO	 quantiteDejalivree
+ 10  	FROM	 LigneLivraison
+ 11  	WHERE	 noProduit = unNoProduit OR  noCommande = unNoCommande;
+ 12  	RETURN	 quantiteDejalivree;
+ 13  END fQteDejaLivree;
+ 14  /
+
+Function created.
+
+SQL> SHOW ERRORS
+No errors.
+SQL> --===============================================
+SQL> --Fonction: fTotalFacture
+SQL> --Description:
+SQL> --Calculer le total d'une Facture
+SQL> --IN (Entier): Un numéro de Livraison
+SQL> --OUT (FLOAT): Le total d'une facture
+SQL> --===============================================
+SQL> CREATE OR REPLACE FUNCTION fTotalFacture
+  2  (unNoLivraison Facture.noLivraison%TYPE)
+  3  RETURN Facture.montantSousTotal%TYPE IS
+  4  
+  5  -- Déclaration du montant total de la facture
+  6  	 MontTotalFacture Facture.montantSousTotal%TYPE;
+  7  BEGIN
+  8  	 SELECT  SUM(montantSousTotal + montantTaxes)
+  9  	 INTO	 MontTotalFacture
+ 10  	 FROM	 Facture
+ 11  	 WHERE	 noLivraison = unNoLivraison;
+ 12  	 RETURN  MontTotalFacture;
+ 13  END fTotalFacture;
+ 14  /
+
+Function created.
+
+SQL> SHOW ERRORS
+No errors.
+SQL> --==============================
+SQL> -- Création des Procedures
+SQL> --==============================
+SQL> 
+SQL> --=================================================================
+SQL> --Procédure: p_PreparerLivraison
+SQL> --Description:
+SQL> --Afficher un Bond de Livraison détaillé
+SQL> --Créer une Ligne dans la table Livraison
+SQL> --IN (Entier): Un numéro de Commande.
+SQL> --IN (Date)  : Une date limite de Livraison choisi par l'Utilisateur.
+SQL> --===================================================================
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE p_PreparerLivraison
+  2  	     (numCommande Commande.noCommande%TYPE, date_livraison Livraison.dateLivraison%TYPE) IS
+  3  
+  4  	     ---Déclaration de variables des informations client
+  5  	     l_num_client Commande.noClient%TYPE;
+  6  	     l_client Client%ROWTYPE;
+  7  	     --Déclaration de variables des informations pour chaque produit
+  8  	     l_num_produit   TypeProduit.noProduit%TYPE;     --le numéro de produit.
+  9  	     l_desc_prod     TypeProduit.description%TYPE;   --la description du produit.
+ 10  	     l_code_zebre    Produit.codeZebre%TYPE;	     --le code zebre du produit.
+ 11  	     l_qte_a_livrer  LigneCommande.quantite%TYPE;    --la quantité à livrer.
+ 12  
+ 13  	     --Déclaration de la variable pour le nouveau noLivraison.
+ 14  	     num_Livraison   Livraison.noLivraison%TYPE;     --le numéro de livraison de la commande.
+ 15  
+ 16  	     --Déclaration d'un curseur sur les produits de la commande.
+ 17  	     CURSOR cur_produits_commandee IS
+ 18  		     SELECT noProduit
+ 19  		     FROM   LigneCommande
+ 20  		     WHERE  LigneCommande.noCommande = numCommande;
+ 21  
+ 22  BEGIN
+ 23  	     --Select pour obtenir le numéro de client pour la commande
+ 24  	     SELECT  noClient
+ 25  	     INTO    l_num_client
+ 26  	     FROM    Commande
+ 27  	     WHERE   Commande.noCommande = numCommande;
+ 28  
+ 29  	     --Select des informations du client
+ 30  	     SELECT prenom,nom,telephone,qualite,noCivique,rue,ville,pays,codePostal
+ 31  	     INTO   l_client.prenom, l_client.nom,l_client.telephone,l_client.qualite,l_client.noCivique,l_client.rue,l_client.ville,l_client.pays,l_client.codePostal
+ 32  	     FROM    Client
+ 33  	     WHERE   Client.noClient = l_num_client;
+ 34  
+ 35  	     --Affichage du bon de livraison.
+ 36  	     DBMS_OUTPUT.PUT_LINE('Numero de commande:' || numCommande);
+ 37  	     DBMS_OUTPUT.PUT_LINE('NoClient:' || l_num_client);
+ 38  	     DBMS_OUTPUT.PUT_LINE('Prenom:' || l_client.prenom);
+ 39  	     DBMS_OUTPUT.PUT_LINE('Nom:' || l_client.nom);
+ 40  	     DBMS_OUTPUT.PUT_LINE('Telephone:' || l_client.telephone);
+ 41  	     DBMS_OUTPUT.PUT_LINE('Adresse:' || l_client.noCivique || ' ' || l_client.rue
+ 42  			     || ' ' || l_client.ville || ', ' || l_client.codePostal|| ', ' || l_client.pays);
+ 43  
+ 44  	     DBMS_OUTPUT.PUT_LINE('NoProduit||CodeZebre||description||quantite');
+ 45  	     DBMS_OUTPUT.PUT_LINE('==============================================');
+ 46  	     OPEN cur_produits_commandee;
+ 47  	     --Boucle sur les produits de la commande.
+ 48  	     LOOP
+ 49  		     FETCH cur_produits_commandee INTO l_num_produit; --ajout du produit courant à la variable.
+ 50  		     EXIT WHEN cur_produits_commandee%NOTFOUND;
+ 51  
+ 52  		     SELECT codeZebre
+ 53  		     INTO    l_code_zebre
+ 54  		     FROM   Produit
+ 55  		     WHERE  Produit.noProduit = l_num_produit;
+ 56  
+ 57  		     SELECT description
+ 58  		     INTO    l_desc_prod
+ 59  		     FROM    TypeProduit
+ 60  		     WHERE  TypeProduit.noProduit = l_num_produit;
+ 61  
+ 62  		     SELECT quantite
+ 63  		     INTO   l_qte_a_livrer
+ 64  		     FROM    LigneCommande
+ 65  		     WHERE  LigneCommande.noProduit = l_num_produit;
+ 66  
+ 67  		     DBMS_OUTPUT.PUT_LINE(l_num_produit || '||' ||  l_code_zebre ||'||'|| l_desc_prod || '||'|| l_qte_a_livrer);
+ 68  
+ 69  	     END LOOP;
+ 70  	     CLOSE cur_produits_commandee;
+ 71  
+ 72  	     --Select pour obtenir le dernier numéro de livraison.
+ 73  	     SELECT MAX(noLivraison)
+ 74  	     INTO   num_Livraison
+ 75  	     FROM   Livraison;
+ 76  
+ 77  	     --Incrément du numéro de livraison
+ 78  	       num_Livraison:= num_Livraison + 1;
+ 79  	      --Création de la livraison.
+ 80  	     INSERT INTO Livraison VALUES(num_Livraison,l_num_client,date_livraison);
+ 81  END;
+ 82  /
+
+Procedure created.
+
+SQL> SHOW ERRORS
+No errors.
+SQL> --=================================================================
+SQL> --Procédure: p_ProduireFacture
+SQL> --Description:
+SQL> --Afficher une Facture détaillé
+SQL> --Créer une Ligne dans la table Facture
+SQL> --IN (Entier): Un numéro de Livraison.
+SQL> --IN (Date)  : Une date limite de Paiement choisi par l'Utilisateur.
+SQL> --===================================================================
+SQL> CREATE OR REPLACE PROCEDURE p_ProduireFacture
+  2  	     (num_Livraison Livraison.noLivraison%TYPE, date_limite_paiement Facture.dateLimitePaiment%TYPE) IS
+  3  
+  4  	     --Déclaration de variables des informations client
+  5  	     l_num_client	     Commande.noClient%TYPE;
+  6  	     l_client		     Client%ROWTYPE;
+  7  
+  8  	     --Déclaration de variables des informations pour chaque produit
+  9  	     l_num_produit     TypeProduit.noProduit%TYPE;   -- le numéro de produit
+ 10  	     l_desc_prod       TypeProduit.description%TYPE; --la description du produit
+ 11  	     l_qte_commande    LigneCommande.quantite%TYPE;  --la quantité à livrer
+ 12  	     l_prix_uni_prod   ProduitPrix.prix%TYPE;	     --le prix de l'article unitaire
+ 13  	     l_prix_total_prod ProduitPrix.prix%TYPE;	     --le prix de l'article total
+ 14  
+ 15  	     --Déclaration des variables des totaux factures.
+ 16  	     mont_sous_total Facture.montantSousTotal%TYPE := 0;
+ 17  	     mont_taxes      Facture.montantTaxes%TYPE;
+ 18  	     mont_total      Facture.montantSousTotal%TYPE;
+ 19  
+ 20  	     --Déclaration d'un curseur sur les produits de la commande.
+ 21  	     CURSOR cur_produits_commandee IS
+ 22  		     SELECT noProduit
+ 23  		     FROM   LigneLivraison
+ 24  		     WHERE  LigneLivraison.noLivraison = num_Livraison;
+ 25  
+ 26  BEGIN
+ 27  	     SELECT  noClient
+ 28  	     INTO    l_num_client
+ 29  	     FROM    Livraison
+ 30  	     WHERE   Livraison.noLivraison = num_Livraison;
+ 31  
+ 32  	     --Select des informations du client.
+ 33  	     SELECT prenom,nom,telephone,qualite,noCivique,rue,ville,pays,codePostal
+ 34  	     INTO   l_client.prenom, l_client.nom,l_client.telephone,l_client.qualite,l_client.noCivique,l_client.rue,l_client.ville,l_client.pays,l_client.codePostal
+ 35  	     FROM    Client
+ 36  	     WHERE   Client.noClient = l_num_client;
+ 37  
+ 38  	     --Affichage de la facture
+ 39  	     DBMS_OUTPUT.PUT_LINE('Numéro de Facture:' || num_Livraison);
+ 40  	     DBMS_OUTPUT.PUT_LINE('NoClient:' || l_num_client);
+ 41  	     DBMS_OUTPUT.PUT_LINE('Prenom:' || l_client.prenom);
+ 42  	     DBMS_OUTPUT.PUT_LINE('Nom:' || l_client.nom);
+ 43  	     DBMS_OUTPUT.PUT_LINE('Telephone:' || l_client.telephone);
+ 44  	     DBMS_OUTPUT.PUT_LINE('Adresse:' || l_client.noCivique || ' ' || l_client.rue
+ 45  		     || ' ' || l_client.ville || ', ' || l_client.codePostal|| ', ' || l_client.pays);
+ 46  
+ 47  	     DBMS_OUTPUT.PUT_LINE('NoProduit||description||quantite||Prix Unitaire||Total');
+ 48  	     DBMS_OUTPUT.PUT_LINE('==============================================================');
+ 49  
+ 50  	     OPEN cur_produits_commandee;
+ 51  	     LOOP
+ 52  		     FETCH cur_produits_commandee INTO l_num_produit;
+ 53  		     EXIT WHEN cur_produits_commandee%NOTFOUND;
+ 54  
+ 55  		     SELECT description
+ 56  		     INTO    l_desc_prod
+ 57  		     FROM    TypeProduit
+ 58  		     WHERE   TypeProduit.noProduit = l_num_produit;
+ 59  
+ 60  		     SELECT quantite
+ 61  		     INTO   l_qte_commande
+ 62  		     FROM    LigneCommande
+ 63  		     WHERE  LigneCommande.noProduit = l_num_produit;
+ 64  
+ 65  
+ 66  		     SELECT prix
+ 67  		     INTO    l_prix_uni_prod
+ 68  		     FROM    ProduitPrix
+ 69  		     WHERE   ProduitPrix.noProduit = l_num_produit;
+ 70  
+ 71  		     l_prix_total_prod := l_qte_commande * l_prix_uni_prod;
+ 72  
+ 73  		     DBMS_OUTPUT.PUT_LINE(l_num_produit || '||' || l_desc_prod || '||' || l_qte_commande || '||'|| l_prix_uni_prod ||'$'|| '||' || l_prix_total_prod || '$');
+ 74  
+ 75  		     mont_sous_total := mont_sous_total + l_prix_total_prod;
+ 76  	     END LOOP;
+ 77  	     CLOSE cur_produits_commandee;
+ 78  
+ 79  	     mont_taxes := mont_sous_total * 0.15;
+ 80  	     mont_total := mont_sous_total + mont_taxes;
+ 81  	     DBMS_OUTPUT.PUT_LINE('Sous-total : ' || mont_sous_total || '$');
+ 82  	     DBMS_OUTPUT.PUT_LINE('Taxes :' || mont_taxes || '$' );
+ 83  	     DBMS_OUTPUT.PUT_LINE('Total : ' || mont_total || '$');
+ 84  
+ 85  	      --Création de la Facture.
+ 86  	     INSERT INTO Facture VALUES(num_Livraison,mont_sous_total,mont_taxes,date_limite_paiement);
+ 87  END;
+ 88  /
+
+Procedure created.
+
+SQL> SHOW ERRORS
+No errors.
+SQL> @tests.sql
+SQL> --===========================================
+SQL> --@Auteur: Jeffrey Robillard
+SQL> --Code Permanent: ROBJ20039301
+SQL> --@Auteur: Angélie Ménard
+SQL> --Code Permanent: MENA16569906
+SQL> --Date de création: 2020-12-23
+SQL> --Description:
+SQL> --Script de Tests de la BD
+SQL> --===========================================
+SQL> 
+SQL> SET SERVEROUTPUT ON
+SQL> 
+SQL> 
+SQL> --============================
+SQL> -- TEST Check Type Usager
+SQL> --============================
+SQL> 
+SQL> ---------------------[VALIDE]-----------------------
+SQL> --Création d'un usager
+SQL> INSERT INTO Usager VALUES (1, 'INF3080', 'Client');
+
+1 row created.
+
+SQL> 
+SQL> ---------------------[NON-VALIDE]-----------------------
+SQL> --Création d'un usager
+SQL> INSERT INTO Usager VALUES (2, 'Banane3', 'Rongeur');
+INSERT INTO Usager VALUES (2, 'Banane3', 'Rongeur')
+*
+ERROR at line 1:
+ORA-02290: violation de contraintes (EF591052.SYS_C005102584) de verification 
+
+
+SQL> 
+SQL> 
+SQL> --================================
+SQL> -- TEST Check Type statusCommande
+SQL> --================================
+SQL> 
+SQL> ---------------------[VALIDE]-----------------------
+SQL> --Création d'un Client
+SQL> INSERT INTO Client VALUES (1, 1, 'John', 'Doe', '0-000-0000', 'Sociable', 000, 'des oiseaux', 'Montreal', 'Canada', 'H0H0H0');
+
+1 row created.
+
+SQL> --Création d'une commande
+SQL> INSERT INTO Commande VALUES(1, 1, '2020-12-06', 'Payee');
+
+1 row created.
+
+SQL> 
+SQL> ---------------------[NON-VALIDE]-----------------------
+SQL> --Création d'un usager
+SQL> INSERT INTO Usager VALUES (2, 'Banane3', 'Client');
+
+1 row created.
+
+SQL> --Création d'un Client
+SQL> INSERT INTO Client VALUES (2, 2, 'Jean', 'Horace', '0-000-0000', 'Ponctuel', 123, 'Jeanne-Mance', 'Montreal', 'Canada', 'H0H0H0');
+
+1 row created.
+
+SQL> --Création d'une commande
+SQL> INSERT INTO Commande VALUES(2, 2, '2020-12-06', 'Au depanneur');
+INSERT INTO Commande VALUES(2, 2, '2020-12-06', 'Au depanneur')
+*
+ERROR at line 1:
+ORA-02290: violation de contraintes (EF591052.SYS_C005102633) de verification 
+
+
+SQL> 
+SQL> --================================
+SQL> -- TEST Check quantitee commandee
+SQL> --================================
+SQL> 
+SQL> ---------------------[VALIDE]-----------------------
+SQL> --Création d'un produit
+SQL> INSERT INTO Produit VALUES (1,'000000000001');
+
+1 row created.
+
+SQL> --Création d'un LigneCommande
+SQL> INSERT INTO LigneCommande VALUES(1, 1, 12);
+
+1 row created.
+
+SQL> 
+SQL> ---------------------[NON-VALIDE]-----------------------
+SQL> --Création d'un produit
+SQL> INSERT INTO Produit VALUES (2,'000000000002');
+
+1 row created.
+
+SQL> --Création d'une commande
+SQL> INSERT INTO Commande VALUES (2, 2, '2020-12-16', 'Payee');
+
+1 row created.
+
+SQL> --Création d'une LigneCommande
+SQL> INSERT INTO LigneCommande VALUES (2, 2, -1);
+INSERT INTO LigneCommande VALUES (2, 2, -1)
+*
+ERROR at line 1:
+ORA-02290: violation de contraintes (EF591052.SYS_C005102639) de verification 
+
+
+SQL> 
+SQL> --================================
+SQL> -- TEST Check Mode de Paiement
+SQL> --================================
+SQL> 
+SQL> ---------------------[VALIDE]-----------------------
+SQL> --Création d'une Livraison.
+SQL> INSERT INTO Livraison VALUES (1, 1, '2021-01-01');
+
+1 row created.
+
+SQL> --Création d'un paiement
+SQL> INSERT INTO Paiement VALUES (1, 1, '2020-12-16', 2000 );
+
+1 row created.
+
+SQL> --Création d'un paiement par carte de crédit
+SQL> INSERT INTO PaiementCarteCredit VALUES (1, '0000 0000 0000' , 'Visa', '2025-01-01');
+
+1 row created.
+
+SQL> 
+SQL> ---------------------[NON-VALIDE]-----------------------
+SQL> --Création d'une Livraison.
+SQL> INSERT INTO Livraison VALUES (2, 2, '2021-01-01');
+
+1 row created.
+
+SQL> --Création d'un paiement
+SQL> INSERT INTO Paiement VALUES (2, 2, '2020-12-16', 2000 );
+
+1 row created.
+
+SQL> --Création d'un paiement par carte de crédit
+SQL> INSERT INTO PaiementCarteCredit VALUES (2, '0000 0000 0000' , 'Capital One', '2021-05-16');
+INSERT INTO PaiementCarteCredit VALUES (2, '0000 0000 0000' , 'Capital One', '2021-05-16')
+*
+ERROR at line 1:
+ORA-02290: violation de contraintes (EF591052.SYS_C005102675) de verification 
+
+
+SQL> 
+SQL> --================================
+SQL> -- TEST Trigger AjusterQteEnStock
+SQL> --================================
+SQL> 
+SQL> --Création d'un type de produit
+SQL> INSERT INTO TypeProduit VALUES (1, 'Disque Dur', 20, 50);
+
+1 row created.
+
+SQL> --Vérification de la quantité avant la trigger
+SQL> SELECT quantiteEnStock
+  2  FROM TypeProduit;
+
+QUANTITEENSTOCK                                                                 
+---------------                                                                 
+             50                                                                 
+
+SQL> --Création d'une LigneLivraison
+SQL> INSERT INTO LigneLivraison VALUES (1, 1, 1, 12);
+
+1 row created.
+
+SQL> 
+SQL> --Vérification de la quantité après la livraison.
+SQL> SELECT quantiteEnStock
+  2  FROM TypeProduit;
+
+QUANTITEENSTOCK                                                                 
+---------------                                                                 
+             38                                                                 
+
+SQL> 
+SQL> --=================================================
+SQL> -- TEST Trigger TRG_bloquerInsertionLivraisonStock
+SQL> --=================================================
+SQL> SELECT quantiteEnStock
+  2  FROM TypeProduit
+  3  WHERE noProduit = 1;
+
+QUANTITEENSTOCK                                                                 
+---------------                                                                 
+             38                                                                 
+
+SQL> 
+SQL> -- Création d'une ligne commande pour la commande 2
+SQL> INSERT INTO LigneCommande VALUES (2,1,40);
+
+1 row created.
+
+SQL> INSERT INTO LigneLivraison VALUES (2, 1, 2, 40);
+INSERT INTO LigneLivraison VALUES (2, 1, 2, 40)
+            *
+ERROR at line 1:
+ORA-01422: l'extraction exacte ramene plus que le nombre de lignes demande 
+ORA-06512: a "EF591052.TRG_BLOQUERLIVRAISON", ligne 10 
+ORA-04088: erreur lors d'execution du declencheur 
+'EF591052.TRG_BLOQUERLIVRAISON' 
+
+
+SQL> 
+SQL> --===================================================
+SQL> -- TEST Trigger TRG_bloquerInsertionLivraisonCommande
+SQL> --====================================================
+SQL> --Création d'un produit
+SQL> INSERT INTO Produit VALUES (3,'000000000002');
+
+1 row created.
+
+SQL> --Création d'une commande
+SQL> INSERT INTO TypeProduit VALUES (3, 'LAPTOP', 20, 50);
+
+1 row created.
+
+SQL> INSERT INTO Commande VALUES (3, 2, '2020-12-16', 'Payee');
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO LigneCommande VALUES(3, 3, 35);
+
+1 row created.
+
+SQL> -- Ajout d'une livraison
+SQL> INSERT INTO Livraison VALUES (3, 2, '2020-12-18');
+
+1 row created.
+
+SQL> 
+SQL> SELECT quantite
+  2  FROM   LigneCommande
+  3  WHERE  noProduit = 3;
+
+  QUANTITE                                                                      
+----------                                                                      
+        35                                                                      
+
+SQL> 
+SQL> --Création d'une LigneCommande
+SQL> INSERT INTO LigneLivraison VALUES (3, 3, 3, 40);
+INSERT INTO LigneLivraison VALUES (3, 3, 3, 40)
+            *
+ERROR at line 1:
+ORA-20100: La quantite a livrer ne peut pas depasser la quantite commande 
+ORA-06512: a "EF591052.TRG_BLOQUERLIVRAISON", ligne 16 
+ORA-04088: erreur lors d'execution du declencheur 
+'EF591052.TRG_BLOQUERLIVRAISON' 
+
+
+SQL> 
+SQL> --=====================================
+SQL> -- TEST Trigger TRG_bloquerPaiement
+SQL> --=====================================
+SQL> -- Création d'un usager
+SQL> INSERT INTO Usager VALUES (4, 'hiver2021', 'Client');
+
+1 row created.
+
+SQL> -- Création d'un client
+SQL> INSERT INTO Client VALUES (4, 4, 'Peter', 'Griffin', '1-999-9999', 'drole', 001, 'Spooner Street', 'Quahog', 'USA', '010010');
+
+1 row created.
+
+SQL> -- Création d'une livraison
+SQL> INSERT INTO Livraison VALUES (4, 4, '2020-12-10');
+
+1 row created.
+
+SQL> -- Création d'une facture
+SQL> INSERT INTO Facture VALUES (4, 2500, 347.38, '2021-12-01');
+
+1 row created.
+
+SQL> 
+SQL> -- Création d'un paiement
+SQL> INSERT INTO Paiement VALUES (4, 3, '2020-12-18', 2000);
+
+1 row created.
+
+SQL> INSERT INTO Paiement VALUES (4, 4, '2020-12-20', 1500);
+INSERT INTO Paiement VALUES (4, 4, '2020-12-20', 1500)
+                                   *
+ERROR at line 1:
+ORA-20300: Le montant a payer ne doit pas depasser le montant du 
+ORA-06512: a "EF591052.TRG_BLOQUERPAIEMENT", ligne 16 
+ORA-04088: erreur lors d'execution du declencheur 
+'EF591052.TRG_BLOQUERPAIEMENT' 
+
+
+SQL> 
+SQL> --=====================================
+SQL> -- TEST Fonction fQteDejaLivree
+SQL> --=====================================
+SQL> -- Création des produit
+SQL> INSERT INTO Produit VALUES (4, '00000000004');
+
+1 row created.
+
+SQL> INSERT INTO Produit VALUES (5, '00000000005');
+
+1 row created.
+
+SQL> INSERT INTO Produit VALUES (6, '00000000006');
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO TypeProduit VALUES (4, 'Tour ordinateur', 5, 70);
+
+1 row created.
+
+SQL> INSERT INTO ProduitPrix VALUES (4, '2020-01-01', 300);
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO TypeProduit VALUES (5, 'Carte graphique', 5, 50);
+
+1 row created.
+
+SQL> INSERT INTO ProduitPrix VALUES (5, '2020-01-01', 100);
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO TypeProduit VALUES (6, 'Cable alimentation', 5, 75);
+
+1 row created.
+
+SQL> INSERT INTO ProduitPrix VALUES (6, '2020-01-01', 10);
+
+1 row created.
+
+SQL> -- Créer une commande avec le client 4
+SQL> INSERT INTO Commande VALUES (4, 4, '2020-11-11', 'Payee');
+
+1 row created.
+
+SQL> -- Créer plusieurs lignes de commandes avec différents produits
+SQL> INSERT INTO LigneCommande VALUES (4, 4, 35);
+
+1 row created.
+
+SQL> INSERT INTO LigneCommande VALUES (4, 5, 12);
+
+1 row created.
+
+SQL> INSERT INTO LigneCommande VALUES (4, 6, 8);
+
+1 row created.
+
+SQL> -- Créer une livraison
+SQL> INSERT INTO Livraison VALUES (5, 4, '2020-12-15');
+
+1 row created.
+
+SQL> -- Créer plusieurs lignes de livraisons avec les produits commandés
+SQL> INSERT INTO LigneLivraison VALUES (5, 4, 4, 8);
+
+1 row created.
+
+SQL> INSERT INTO LigneLivraison VALUES (5, 4, 4, 12);
+
+1 row created.
+
+SQL> INSERT INTO LigneLivraison VALUES (5, 4, 4, 4);
+
+1 row created.
+
+SQL> 
+SQL> 
+SQL> -- Appeler la fonction avec le numéro de produit 4 et la commande 5
+SQL> SELECT fQteDejaLivree(4, 5) FROM dual;
+
+FQTEDEJALIVREE(4,5)                                                             
+-------------------                                                             
+                 24                                                             
+
+SQL> 
+SQL> 
+SQL> --=====================================
+SQL> -- TEST Fonction fTotalFacture
+SQL> --=====================================
+SQL> -- Avec la livraison 4 d'un montant sous-total de 2500 et d'un montant de taxes de 347.38
+SQL> SELECT fTotalFacture(4) FROM dual;
+
+FTOTALFACTURE(4)                                                                
+----------------                                                                
+         2847,38                                                                
+
+SQL> 
+SQL> --=====================================
+SQL> -- TEST Procedure p_PreparerLivraison
+SQL> --=====================================
+SQL> -- Avec la commande 4 utilisé au test fQteDejaLivree
+SQL> -- Appeler la procedure p_PreparerLivraison
+SQL> EXECUTE p_PreparerLivraison(4, '2020-10-22');
+Numero de commande:4                                                            
+NoClient:4                                                                      
+Prenom:Peter                                                                    
+Nom:Griffin                                                                     
+Telephone:1-999-9999                                                            
+Adresse:1 Spooner Street Quahog, 010010, USA                                    
+NoProduit||CodeZebre||description||quantite                                     
+==============================================                                  
+4||00000000004 ||Tour ordinateur||35                                            
+5||00000000005 ||Carte graphique||12                                            
+6||00000000006 ||Cable alimentation||8                                          
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> --=====================================
+SQL> -- TEST Procedure p_PreparerFacture
+SQL> --=====================================
+SQL> 
+SQL> -- Créer plusieurs ligne de commande
+SQL> INSERT INTO Produit VALUES (7, '00000000007');
+
+1 row created.
+
+SQL> INSERT INTO Produit VALUES (8, '00000000008');
+
+1 row created.
+
+SQL> INSERT INTO Produit VALUES (9, '00000000009');
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO TypeProduit VALUES (7, 'Tour ordinateur', 5, 70);
+
+1 row created.
+
+SQL> INSERT INTO ProduitPrix VALUES (7, '2020-01-01', 300);
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO TypeProduit VALUES (8, 'Carte graphique', 5, 50);
+
+1 row created.
+
+SQL> INSERT INTO ProduitPrix VALUES (8, '2020-01-01', 100);
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO TypeProduit VALUES (9, 'Cable alimentation', 5, 75);
+
+1 row created.
+
+SQL> INSERT INTO ProduitPrix VALUES (9, '2020-01-01', 10);
+
+1 row created.
+
+SQL> -- Créer une commande avec le client 4
+SQL> INSERT INTO Commande VALUES (8, 4, '2020-11-11', 'Payee');
+
+1 row created.
+
+SQL> -- Créer plusieurs lignes de commandes avec différents produits
+SQL> INSERT INTO LigneCommande VALUES (8, 7, 20);
+
+1 row created.
+
+SQL> INSERT INTO LigneCommande VALUES (8, 8, 35);
+
+1 row created.
+
+SQL> INSERT INTO LigneCommande VALUES (8, 9, 22);
+
+1 row created.
+
+SQL> -- Créer une livraison
+SQL> INSERT INTO Livraison VALUES (7, 4, '2020-12-15');
+
+1 row created.
+
+SQL> 
+SQL> -- Créer plusieurs lignes de livraisons avec les produits commandés
+SQL> INSERT INTO LigneLivraison VALUES (7, 7, 8, 8);
+
+1 row created.
+
+SQL> INSERT INTO LigneLivraison VALUES (7, 8, 8, 12);
+
+1 row created.
+
+SQL> INSERT INTO LigneLivraison VALUES (7, 9, 8, 4);
+
+1 row created.
+
+SQL> -- Exécuter la procédure
+SQL> EXECUTE p_ProduireFacture(7, '2021-12-01');
+Num??ro de Facture:7                                                            
+NoClient:4                                                                      
+Prenom:Peter                                                                    
+Nom:Griffin                                                                     
+Telephone:1-999-9999                                                            
+Adresse:1 Spooner Street Quahog, 010010, USA                                    
+NoProduit||description||quantite||Prix Unitaire||Total                          
+==============================================================                  
+7||Tour ordinateur||20||300$||6000$                                             
+8||Carte graphique||35||100$||3500$                                             
+9||Cable alimentation||22||10$||220$                                            
+Sous-total : 9720$                                                              
+Taxes :1458$                                                                    
+Total : 11178$                                                                  
+
+PL/SQL procedure successfully completed.
+
+SQL> exit

@@ -183,97 +183,43 @@ BEGIN
         WHERE TypeProduit.noProduit = :Achat.noProduit;
 END;
 /
---
--- DECLENCHEUR: TRG_bloquerInsertionStock
--- TABLE: LigneLivraison
--- TYPE: Après requête d'insertion
--- DESCRIPTION:
--- Bloquer l'insertion d'une livraison d'un article lorsque la quantité livrée dépasse la quantité en stock
-CREATE OR REPLACE TRIGGER TRG_bloquerInsertionLivraison
-BEFORE INSERT
-        ON LigneLivraison
-REFERENCING
-        NEW AS LivraisonStock
-FOR EACH ROW
 
-DECLARE quantiteStock INTEGER;
-
-BEGIN
-        SELECT quantiteEnStock
-        INTO quantiteStock
-        FROM TypeProduit
-        WHERE TypeProduit.noProduit = :LivraisonStock.noProduit;
-
-        IF :LivraisonStock.quantiteLivree > quantiteStock THEN
-                RAISE_APPLICATION_ERROR (-20100, 'La quantite livree ne peut depasser la quantite en stock');
-        END IF;
-END;
-/
---
--- DECLENCHEUR: TRG_bloquerInsertionLivraison
+-- DECLENCHEUR: TRG_bloquerLivraisonCommande
 -- TABLE: LigneLivraison
 -- TYPE: Après requête d'insertion
 -- DESCRIPTION:
 -- Bloque l'insertion d'une livraison d'un article lorsque la quantité totale livrée dépasse la quantité
 -- commandée de la commande concernée
 --
-CREATE OR REPLACE TRIGGER TRG_bloquerInsertionCommande
+CREATE OR REPLACE TRIGGER TRG_bloquerLivraison
 BEFORE INSERT
         ON LigneLivraison
 REFERENCING
         NEW AS NouvelleLivraison
 FOR EACH ROW
         DECLARE
-                qteLivree       NUMBER(19);
                 qteCommandee    NUMBER(19);
+		qteStock 	NUMBER(19);
 BEGIN
-        SELECT  SUM(quantiteLivree)
-        INTO    qteLivree
-        FROM    LigneLivraison
-        WHERE   LigneLivraison.noProduit = :NouvelleLivraison.noProduit;
+	SELECT  quantiteEnStock
+	INTO	qteStock
+	FROM	TypeProduit
+	WHERE	TypeProduit.noProduit = :NouvelleLivraison.noProduit;
 
         SELECT  quantite
         INTO    qteCommandee
         FROM    LigneCommande
         WHERE   LigneCommande.noProduit = :NouvelleLivraison.noProduit;
 
-        IF :NouvelleLivraison.quantiteLivree + qteLivree > qteCommandee THEN
-                raise_application_error(-20100, 'La quantite a livrer est trop elevee');
+        IF :NouvelleLivraison.quantiteLivree  > qteCommandee THEN
+                raise_application_error(-20100, 'La quantite a livrer ne peut pas depasser la quantite commande');
+	END IF;
+	IF :NouvelleLivraison.quantiteLivree > qteStock THEN
+		raise_application_error(-20101, 'La quantite a livrer ne peut pas deasser la quantite en stock');
         END IF;
 END;
 /
--- DECLENCHEUR: TRG_bloquerInsertionLivraison
--- TABLE: LigneLivraison
--- TYPE: Après requête d'insertion
--- DESCRIPTION:
--- Bloque l'insertion d'une livraison d'un article lorsque la quantité totale livrée dépasse la quantité
--- commandée de la commande concernée
---
-CREATE OR REPLACE TRIGGER TRG_bloquerInsertionLivraison
-BEFORE INSERT
-        ON LigneLivraison
-REFERENCING
-        NEW AS NouvelleLivraison
-FOR EACH ROW
-        DECLARE
-                qteLivree       NUMBER(19);
-                qteCommandee    NUMBER(19);
-BEGIN
-        SELECT  SUM(quantiteLivree)
-        INTO    qteLivree
-        FROM    LigneLivraison
-        WHERE   LigneLivraison.noProduit = :NouvelleLivraison.noProduit;
-
-        SELECT  quantite
-        INTO    qteCommandee
-        FROM    LigneCommande
-        WHERE   LigneCommande.noProduit = :NouvelleLivraison.noProduit;
-
-        IF :NouvelleLivraison.quantiteLivree + qteLivree > qteCommandee THEN
-                raise_application_error(-20100, 'La quantite a livrer est trop elevee');
-        END IF;
-END;
-/
+SHOW ERRORS
 --
 -- DECLENCHEUR: TRG_bloquerPaiement
 -- TABLE: Paiement

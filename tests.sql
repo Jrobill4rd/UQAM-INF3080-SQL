@@ -96,28 +96,36 @@ INSERT INTO LigneLivraison VALUES (1, 1, 1, 12);
 SELECT quantiteEnStock
 FROM TypeProduit;
 
---=====================================
--- TEST Trigger TRG_bloquerInsertionStock
---=====================================
+--=================================================
+-- TEST Trigger TRG_bloquerInsertionLivraisonStock
+--=================================================
 SELECT quantiteEnStock
-FROM TypeProduit;
+FROM TypeProduit
+WHERE noProduit = 1;
+
 -- Création d'une ligne commande pour la commande 2
-INSERT INTO LigneCommande VALUES (2,1,10);
+INSERT INTO LigneCommande VALUES (2,1,40);
+INSERT INTO LigneLivraison VALUES (2, 1, 2, 40);
 
-INSERT INTO LigneLivraison VALUES (2, 1, 2, 55);
-
---=====================================
--- TEST Trigger TRG_bloquerInsertionLivraison
---=====================================
+--===================================================
+-- TEST Trigger TRG_bloquerInsertionLivraisonCommande
+--====================================================
 --Création d'un produit
 INSERT INTO Produit VALUES (3,'000000000002');
 --Création d'une commande
 INSERT INTO TypeProduit VALUES (3, 'LAPTOP', 20, 50);
 INSERT INTO Commande VALUES (3, 2, '2020-12-16', 'Payee');
+
+INSERT INTO LigneCommande VALUES(3, 3, 35);
 -- Ajout d'une livraison
-INSERT INTO Livraison VALUES (3, 1, '2020-12-18');
+INSERT INTO Livraison VALUES (3, 2, '2020-12-18');
+
+SELECT quantite
+FROM   LigneCommande
+WHERE  noProduit = 3;
+
 --Création d'une LigneCommande
-INSERT INTO LigneLivraison VALUES (3, 3, 3, 55);
+INSERT INTO LigneLivraison VALUES (3, 3, 3, 40);
 
 --=====================================
 -- TEST Trigger TRG_bloquerPaiement
@@ -154,15 +162,17 @@ INSERT INTO ProduitPrix VALUES (6, '2020-01-01', 10);
 -- Créer une commande avec le client 4
 INSERT INTO Commande VALUES (4, 4, '2020-11-11', 'Payee');
 -- Créer plusieurs lignes de commandes avec différents produits
-INSERT INTO LigneCommande VALUES (4, 4, 10);
+INSERT INTO LigneCommande VALUES (4, 4, 35);
 INSERT INTO LigneCommande VALUES (4, 5, 12);
 INSERT INTO LigneCommande VALUES (4, 6, 8);
 -- Créer une livraison
 INSERT INTO Livraison VALUES (5, 4, '2020-12-15');
 -- Créer plusieurs lignes de livraisons avec les produits commandés
-INSERT INTO LigneLivraison VALUES (5, 4, 5, 8);
-INSERT INTO LigneLivraison VALUES (5, 5, 5, 12);
-INSERT INTO LigneLivraison VALUES (5, 6, 5, 4);
+INSERT INTO LigneLivraison VALUES (5, 4, 4, 8);
+INSERT INTO LigneLivraison VALUES (5, 4, 4, 12);
+INSERT INTO LigneLivraison VALUES (5, 4, 4, 4);
+
+
 -- Appeler la fonction avec le numéro de produit 4 et la commande 5
 SELECT fQteDejaLivree(4, 5) FROM dual;
 
@@ -171,32 +181,44 @@ SELECT fQteDejaLivree(4, 5) FROM dual;
 -- TEST Fonction fTotalFacture
 --=====================================
 -- Avec la livraison 4 d'un montant sous-total de 2500 et d'un montant de taxes de 347.38
--- Appeler la fonction total facture (voir test TRG_bloquerPaiement)
 SELECT fTotalFacture(4) FROM dual;
 
 --=====================================
 -- TEST Procedure p_PreparerLivraison
 --=====================================
--- Avec la commande 5 et la livraison 5 utilisée au test fQteDejaLivree
+-- Avec la commande 4 utilisé au test fQteDejaLivree
 -- Appeler la procedure p_PreparerLivraison
-EXECUTE p_PreparerLivraison(5, 5);
+EXECUTE p_PreparerLivraison(4, '2020-10-22');
 
 --=====================================
 -- TEST Procedure p_PreparerFacture
 --=====================================
--- Avec le client 4, créer une nouvelle commande
-INSERT INTO Commande VALUES (6, 4, '2020-11-11', 'Livree');
+
 -- Créer plusieurs ligne de commande
-INSERT INTO LigneCommande VALUES (6, 4, 10);
-INSERT INTO LigneCommande VALUES (6, 5, 12);
-INSERT INTO LigneCommande VALUES (6, 6, 8);
+INSERT INTO Produit VALUES (7, '00000000007');
+INSERT INTO Produit VALUES (8, '00000000008');
+INSERT INTO Produit VALUES (9, '00000000009');
+
+INSERT INTO TypeProduit VALUES (7, 'Tour ordinateur', 5, 70);
+INSERT INTO ProduitPrix VALUES (7, '2020-01-01', 300);
+
+INSERT INTO TypeProduit VALUES (8, 'Carte graphique', 5, 50);
+INSERT INTO ProduitPrix VALUES (8, '2020-01-01', 100);
+
+INSERT INTO TypeProduit VALUES (9, 'Cable alimentation', 5, 75);
+INSERT INTO ProduitPrix VALUES (9, '2020-01-01', 10);
+-- Créer une commande avec le client 4
+INSERT INTO Commande VALUES (8, 4, '2020-11-11', 'Payee');
+-- Créer plusieurs lignes de commandes avec différents produits
+INSERT INTO LigneCommande VALUES (8, 7, 20);
+INSERT INTO LigneCommande VALUES (8, 8, 35);
+INSERT INTO LigneCommande VALUES (8, 9, 22);
 -- Créer une livraison
-INSERT INTO Livraison VALUES (6, 4, '2020-12-12')
--- Créer des lignes livraisons
-INSERT INTO LigneLivraison VALUES (6, 4, 6, 10);
-INSERT INTO LigneLivraison VALUES (6, 5, 6, 12);
-INSERT INTO LigneLivraison VALUES (6, 6, 6, 8);
--- Créer une facture
-INSERT INTO Facture VALUES (6, 4300, 643.93, '2021-12-01');
+INSERT INTO Livraison VALUES (7, 4, '2020-12-15');
+
+-- Créer plusieurs lignes de livraisons avec les produits commandés
+INSERT INTO LigneLivraison VALUES (7, 7, 8, 8);
+INSERT INTO LigneLivraison VALUES (7, 8, 8, 12);
+INSERT INTO LigneLivraison VALUES (7, 9, 8, 4);
 -- Exécuter la procédure
-EXECUTE p_PreparerLivraison(6, '2021-12-01');
+EXECUTE p_ProduireFacture(7, '2021-12-01');
